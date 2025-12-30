@@ -1,0 +1,82 @@
+title = "Alpaca Sample Driver (Rotator)"
+
+[network]
+# ip_address should not have to be changed
+ip_address = '127.0.0.1'           # Any address
+port = 5555
+imgport = 7556     # Imaging API port
+stport = 8090      #stellarium port
+sthost = 'localhost'  #stellarium hostname or IP
+rtsp_udp = true
+
+[webui_settings]
+uiport = 5432
+# light/dark theme
+uitheme = "dark" #all lower case
+#experimental = true
+confirm = true	# Enable/Disable the Commands page confirmation dialog
+# save_frames = false
+# save_frames_dir = "."
+
+# CSS overrides
+text_color = ""
+font_family = ""
+font_url = ""
+link_color = ""
+accent_color = ""
+
+[server]
+location = 'Anywhere on Earth'  # Anything you want here
+verbose_driver_exceptions = true
+
+[device]
+can_reverse = true
+step_size = 1.0
+steps_per_sec = 6
+
+
+[seestar_initialization]
+save_good_frames = true
+save_all_frames = false             # including good and bad frames
+lat = 37.12                         # telescope location (lat), set to 0 if you want to guess from IP address
+long = -123.45                      # telescope location (long), set to 0 if you want to guess from IP address
+gain = 80
+exposure_length_preview_ms = 500
+exposure_length_stack_ms = 10000
+dither_enabled = true
+dither_length_pixel = 50
+dither_frequency = 10
+activate_LP_filter = false
+dew_heater_power = 0                # 0 - 100; 0 is off, 100 is max
+is_EQ_mode = true           # set to false if you want the old standard alt-az mode
+guest_mode_init = true
+battery_low_limit = 3
+dec_pos_index = 3       # 1-5; 1 = Dec Arm pointing North,  3 = Dec Arm pointing at Zenith, 5 = Dec Arm pointing South
+is_frame_calibrated = true
+
+[logging]
+log_level = 'INFO'   #'WARN' only if trouble    #'INFO' to output more logging      #'DEBUG' still more output
+log_prefix = ''
+log_to_stdout = false
+max_size_mb = 5
+num_keep_logs = 10
+log_events_in_info = true
+
+[[seestars]]
+name = "Seestar Alpha"
+# ip_address should not have to be changed unless you have more than 1 seestar
+ip_address = "seestar.local"
+device_num = 1
+# You can specify the following settings to override those found in the seestar_initialization section on a per-device level
+#is_EQ_mode = false          # can be used to override default
+
+#[[seestars]]
+#name = "Seestar Beta"
+#ip_address = "192.168.110.36"
+#device_num = 2
+
+
+#[[seestars]]
+#name = "Seestar Gamma"
+#ip_address = "192.168.110.238"
+#device_num = 3
