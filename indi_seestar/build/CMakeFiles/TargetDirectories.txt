@@ -1,3 +1,0 @@
-/mnt/d/Dropbox/Projects/indi-seestar/indi_seestar/build/CMakeFiles/indi_seestar_telescope.dir
-/mnt/d/Dropbox/Projects/indi-seestar/indi_seestar/build/CMakeFiles/edit_cache.dir
-/mnt/d/Dropbox/Projects/indi-seestar/indi_seestar/build/CMakeFiles/rebuild_cache.dir

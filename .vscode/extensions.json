@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "chiehyu.vscode-astyle",
+    "nick-rudenko.back-n-forth",
+    "alefragnani.bookmarks",
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack",
+    "ms-vscode.cpptools-themes",
+    "ms-vscode.cmake-tools",
+    "webfreak.debug",
+    "ms-vscode.vscode-serial-monitor"
+  ]
+}

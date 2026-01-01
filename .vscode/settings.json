@@ -1,3 +1,9 @@
 {
-    "cmake.sourceDirectory": "D:/Dropbox/Projects/indi-seestar/indi_seestar"
+    {
+  "cmake.configureArgs": [],
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.configureSettings": {
+    "CMAKE_INSTALL_PREFIX": "/usr",
+    "CMAKE_CURRENT_BINARY_DIR": "${workspaceFolder}/build"
+  }
 }

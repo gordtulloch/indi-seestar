@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/indi_seestar_telescope.dir/src/indi_seestar_telescope.cpp.o CMakeFiles/indi_seestar_telescope.dir/src/seestar_client.cpp.o -o indi_seestar_telescope  -lindidriver 
