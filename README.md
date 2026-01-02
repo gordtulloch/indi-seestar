@@ -40,13 +40,18 @@ The Seestar v1.1.2-1 firmware has excellent ASCOM Alpaca support with comprehens
 - **Telescope GET Methods:** 48/52 working (92%)
 - **Telescope PUT Methods:** 32/32 tested (100% coverage)
 - **Camera GET Methods:** 40/58 working (69%)
-- **Working Features:** Tracking, slewing, parking, guide rates, site location, manual axis movement, camera exposure control, gain control, temperature monitoring
-- **Main Limitations:** No Alt/Az slewing, no camera cooling control, no binning support
+- **FilterWheel Methods:** 3/3 GET working (100%), 1/1 PUT working (100%)
+- **Focuser GET Methods:** 8/9 working (89%)
+- **Focuser PUT Methods:** 2/4 working (50%)
+- **Working Features:** Tracking, slewing, parking, guide rates, site location, manual axis movement, camera exposure control, gain control, temperature monitoring, filter wheel control (3 positions: Dark, IR, LP), focuser absolute positioning (0-2600 steps)
+- **Main Limitations:** No Alt/Az slewing, no camera cooling control, no binning support, focuser absolute-only positioning (no relative moves)
 
 **Detailed Documentation:**
 - [Common Methods Support](Supported.Common.md) - Connection, device info, command methods
 - [Telescope Methods Support](Supported.Telescope.md) - All telescope-specific methods
 - [Camera Methods Support](Supported.Camera.md) - All camera-specific methods
+- [FilterWheel Methods Support](Supported.FilterWheel.md) - All filterwheel-specific methods
+- [Focuser Methods Support](Supported.Focuser.md) - All focuser-specific methods
 
 ## Requirements
 
