@@ -47,6 +47,7 @@ The Seestar v1.1.2-1 firmware has excellent ASCOM Alpaca support with comprehens
 - **Main Limitations:** No Alt/Az slewing, no camera cooling control, no binning support, focuser absolute-only positioning (no relative moves)
 
 **Detailed Documentation:**
+- [Alpaca API Comparison Table](AlpacaAPIComparison.md) - **Complete comparison of ASCOM standard vs Seestar implementation**
 - [Common Methods Support](Supported.Common.md) - Connection, device info, command methods
 - [Telescope Methods Support](Supported.Telescope.md) - All telescope-specific methods
 - [Camera Methods Support](Supported.Camera.md) - All camera-specific methods
