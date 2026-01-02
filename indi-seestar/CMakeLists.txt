@@ -89,7 +89,7 @@ target_link_libraries(indi_seestar_focuser
 install(TARGETS indi_seestar_telescope indi_seestar_ccd indi_seestar_filterwheel indi_seestar_focuser RUNTIME DESTINATION bin)
 install(FILES indi_seestar.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/../share/indi)
 
-# Tests subdirectory
+# Alpaca tests subdirectory
 if(BUILD_TESTS)
-    add_subdirectory(../tests tests)
+    add_subdirectory(../alpaca-tests alpaca-tests)
 endif()

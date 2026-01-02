@@ -146,7 +146,7 @@ The Seestar v1.1.2-1 has excellent support for ASCOM Alpaca telescope methods. M
 
 ## Test Programs
 
-Test programs used to validate this support can be found in the [tests directory](tests/README.md):
+Test programs used to validate this support can be found in the [alpaca-tests directory](../alpaca-tests/README.md):
 - `telescope_get_all_test` - Tests all GET methods
 - `telescope_complete_test` - Tests all GET/PUT method pairs
 - Individual method test programs for specific functionality

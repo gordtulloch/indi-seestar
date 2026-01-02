@@ -568,7 +568,7 @@ This document provides a comprehensive checklist for implementing a complete IND
 ## Notes
 
 - All testing completed: [AlpacaAPIComparison.md](AlpacaAPIComparison.md)
-- Test programs available in `tests/` directory
+- Test programs available in `alpaca-tests/` directory
 - Build system already established for tests
 - Focus on absolute positioning workaround for focuser
 - Remember error 1279 for park-dependent operations

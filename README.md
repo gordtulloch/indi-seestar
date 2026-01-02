@@ -140,10 +140,10 @@ Comprehensive API testing completed against Seestar v1.1.2-1:
 
 ### Test Programs
 
-The `tests/` directory contains validation programs used during development:
+The `alpaca-tests/` directory contains validation programs used during development:
 
 ```bash
-cd tests
+cd alpaca-tests
 mkdir build && cd build
 cmake ..
 make
@@ -156,7 +156,7 @@ make
 ./focuser_methods_test
 ```
 
-See [tests/README.md](tests/README.md) for complete test program documentation.
+See [alpaca-tests/README.md](alpaca-tests/README.md) for complete test program documentation.
 
 ## 🐛 Known Issues & Limitations
 
@@ -193,7 +193,7 @@ indi-seestar/
 │   ├── indi_seestar_focuser.cpp/.h      # Focuser driver
 │   ├── indi_seestar.xml                 # INDI device registration
 │   └── CMakeLists.txt                   # Build configuration
-├── tests/                  # API validation test programs
+├── alpaca-tests/           # API validation test programs
 ├── docs/                   # Detailed documentation
 └── README.md              # This file
 ```
