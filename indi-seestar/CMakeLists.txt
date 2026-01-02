@@ -30,10 +30,22 @@ set(INDI_SEESTAR_CCD_SOURCES
     indi_seestar_ccd.cpp
 )
 
+# Source files for FilterWheel driver
+set(INDI_SEESTAR_FILTERWHEEL_SOURCES
+    indi_seestar_filterwheel.cpp
+)
+
+# Source files for Focuser driver
+set(INDI_SEESTAR_FOCUSER_SOURCES
+    indi_seestar_focuser.cpp
+)
+
 # Headers
 set(INDI_SEESTAR_HEADERS
     indi_seestar.h
     indi_seestar_ccd.h
+    indi_seestar_filterwheel.h
+    indi_seestar_focuser.h
 )
 
 # Build the telescope driver
@@ -55,8 +67,26 @@ target_link_libraries(indi_seestar_ccd
     Threads::Threads
 )
 
+# Build the FilterWheel driver
+add_executable(indi_seestar_filterwheel ${INDI_SEESTAR_FILTERWHEEL_SOURCES})
+
+target_link_libraries(indi_seestar_filterwheel
+    indidriver
+    nova
+    Threads::Threads
+)
+
+# Build the Focuser driver
+add_executable(indi_seestar_focuser ${INDI_SEESTAR_FOCUSER_SOURCES})
+
+target_link_libraries(indi_seestar_focuser
+    indidriver
+    nova
+    Threads::Threads
+)
+
 # Installation
-install(TARGETS indi_seestar_telescope indi_seestar_ccd RUNTIME DESTINATION bin)
+install(TARGETS indi_seestar_telescope indi_seestar_ccd indi_seestar_filterwheel indi_seestar_focuser RUNTIME DESTINATION bin)
 install(FILES indi_seestar.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/../share/indi)
 
 # Tests subdirectory

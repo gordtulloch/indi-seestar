@@ -2,13 +2,25 @@
 <driversList>
     <devGroup group="Telescopes">
         <device label="Seestar" manufacturer="ZWO">
-            <driver name="Seestar">indi_seestar_telescope</driver>
+            <driver name="Seestarc Telescope">indi_seestar_telescope</driver>
             <version>1.0</version>
         </device>
     </devGroup>
     <devGroup group="CCDs">
         <device label="Seestar CCD" manufacturer="ZWO">
             <driver name="Seestar CCD">indi_seestar_ccd</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+    <devGroup group="Filter Wheels">
+        <device label="Seestar FilterWheel" manufacturer="ZWO">
+            <driver name="Seestar FilterWheel">indi_seestar_filterwheel</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+    <devGroup group="Focusers">
+        <device label="Seestar Focuser" manufacturer="ZWO">
+            <driver name="Seestar Focuser">indi_seestar_focuser</driver>
             <version>1.0</version>
         </device>
     </devGroup>
