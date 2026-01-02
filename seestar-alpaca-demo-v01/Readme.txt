@@ -1,0 +1,1 @@
+Open with VS2022 or VS2026 and compile directly.

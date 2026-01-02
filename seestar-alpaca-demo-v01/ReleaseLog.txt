@@ -1,0 +1,54 @@
+=============================================
+demo_v0.1_20251218
+
+发版日志：
+注意！demo 现在没支持的，不代表Seestar Alpaca driver不支持，demo后续会持续更新，此demo仅作为二次开发参考
+
+整体
+- 支持Camera、Focuser、Filter Wheel、Telescope的扫描和连接
+- 支持Camera、Focuser、Filter Wheel、Telescope的连接状态和参数信息显示
+
+Camera
+- 支持Gain和Exposure设置
+- 支持StartExposure和图像显示
+
+Focuser
+- 支持Target position move
+
+Filter Wheel
+- 支持Position Change（Dark、IR、LP）
+
+Telescope
+- 支持手动move
+- 支持Home
+- 支持设置跟踪速率
+- 支持设置主轴和副轴的手动move速率
+- 支持RA DEC Slew
+- 支持Alt Az Slew
+
+
+ReleaseLog: 
+Note! Features not supported in this demo do not imply lack of support in the Seestar Alpaca driver; updates will be released continuously. 
+This demo is intended for secondary development reference only!
+
+Overall
+- Supports scanning and connecting to Camera, Focuser, Filter Wheel, and Telescope.
+- Supports displaying connection status and parameter information for Camera, Focuser, Filter Wheel, and Telescope.
+
+Camera
+- Supports Gain and Exposure settings.
+- Supports StartExposure and image display.
+
+Focuser
+- Supports Target position move.
+
+Filter Wheel
+- Supports Position Change (Dark, IR, LP).
+
+Telescope
+- Supports manual move.
+- Supports Home.
+- Supports setting tracking rate.
+- Supports setting manual move rates for primary and secondary axes.
+- Supports RA DEC Slew.
+- Supports Alt Az Slew.

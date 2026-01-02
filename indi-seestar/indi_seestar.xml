@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<driversList>
+    <devGroup group="Telescopes">
+        <device label="Seestar" manufacturer="ZWO">
+            <driver name="Seestar">indi_seestar_telescope</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+    <devGroup group="CCDs">
+        <device label="Seestar CCD" manufacturer="ZWO">
+            <driver name="Seestar CCD">indi_seestar_ccd</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+</driversList>
