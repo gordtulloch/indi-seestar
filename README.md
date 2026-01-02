@@ -73,7 +73,7 @@ The following table shows the test status of all Telescope Specific Methods in t
 | tracking | PUT | /tracking | ✅ Working | Enable/disable tracking |
 | trackingrate | GET | /trackingrate | ✅ Working | Current tracking rate |
 | trackingrate | PUT | /trackingrate | ✅ Working | Can set tracking rate |
-| trackingrates | GET | /trackingrates | ✅ Working | Available tracking rates |
+| trackingrates | GET | /trackingrates | ✅ Working | Returns [0,1,2]: Sidereal, Lunar, Solar |
 | **Rates** |
 | declinationrate | GET | /declinationrate | ✅ Working | Returns 0 |
 | declinationrate | PUT | /declinationrate | ❌ Not Implemented | Error 1024 |
