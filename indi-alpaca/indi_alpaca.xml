@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<driversList>
+    <devGroup group="Telescopes">
+        <device label="alpaca" manufacturer="ZWO">
+            <driver name="alpacac Telescope">indi_alpaca_telescope</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+    <devGroup group="CCDs">
+        <device label="alpaca CCD" manufacturer="ZWO">
+            <driver name="alpaca CCD">indi_alpaca_ccd</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+    <devGroup group="Filter Wheels">
+        <device label="alpaca FilterWheel" manufacturer="ZWO">
+            <driver name="alpaca FilterWheel">indi_alpaca_filterwheel</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+    <devGroup group="Focusers">
+        <device label="alpaca Focuser" manufacturer="ZWO">
+            <driver name="alpaca Focuser">indi_alpaca_focuser</driver>
+            <version>1.0</version>
+        </device>
+    </devGroup>
+</driversList>

@@ -1,7 +1,7 @@
 /**
- * Test program to query supported actions from the Seestar telescope
+ * Test program to query supported actions from the alpaca telescope
  * 
- * This program connects to the Seestar and queries the supportedactions
+ * This program connects to the alpaca and queries the supportedactions
  * endpoint to see what custom actions are available.
  */
 
@@ -17,7 +17,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Connect to the Seestar device
+ * Connect to the alpaca device
  */
 bool connectDevice(const std::string& hostname, int port = 32323) {
     CURL* curl;
@@ -111,7 +111,7 @@ bool getSupportedActions(const std::string& hostname, int port = 32323) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) {
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
         port = std::atoi(argv[2]);
     }
     
-    std::cout << "=== Seestar Supported Actions Query ===" << std::endl;
+    std::cout << "=== alpaca Supported Actions Query ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "========================================" << std::endl << std::endl;
     

@@ -1,8 +1,8 @@
 /**
- * Test program to query all GET methods from Seestar telescope
+ * Test program to query all GET methods from alpaca telescope
  * 
  * This program systematically tests all ASCOM Alpaca telescope GET endpoints
- * to determine which are implemented in the Seestar firmware.
+ * to determine which are implemented in the alpaca firmware.
  */
 
 #include <iostream>
@@ -18,7 +18,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Send a GET request to the Seestar API
+ * Send a GET request to the alpaca API
  */
 bool sendGET(const std::string& url, std::string& response) {
     CURL* curl = curl_easy_init();
@@ -127,7 +127,7 @@ void testEndpoint(const std::string& baseUrl, const std::string& endpoint, const
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     std::string baseUrl = "http://" + hostname + ":" + std::to_string(port) + "/api/v1/telescope/0";
     
     std::cout << "========================================" << std::endl;
-    std::cout << "Seestar Telescope GET Methods Test" << std::endl;
+    std::cout << "alpaca Telescope GET Methods Test" << std::endl;
     std::cout << "========================================" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "========================================" << std::endl;

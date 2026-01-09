@@ -1,7 +1,7 @@
 /**
- * Test program to query Seestar telescope state
+ * Test program to query alpaca telescope state
  * 
- * This program queries various status properties from the Seestar
+ * This program queries various status properties from the alpaca
  * to understand its current state.
  */
 
@@ -65,7 +65,7 @@ bool sendPUT(const std::string& url, const std::string& data, std::string& respo
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     
     std::string base = "http://" + hostname + ":" + std::to_string(port) + "/api/v1/telescope/0";
     
-    std::cout << "=== Seestar Telescope State Query ===" << std::endl;
+    std::cout << "=== alpaca Telescope State Query ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "======================================" << std::endl << std::endl;
     

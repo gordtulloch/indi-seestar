@@ -1,5 +1,5 @@
 /*
-    INDI Seestar Driver
+    INDI alpaca Driver
     
     Copyright (C) 2026 Gord Tulloch
     
@@ -18,17 +18,27 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_seestar.h"
+#include "indi_alpaca_telescope.h"
 #include <memory>
 #include <cstring>
 #include <cmath>
 #include <indicom.h>
 #include <libnova/julian_day.h>
 
-std::unique_ptr<SeestarDriver> seestar(new SeestarDriver());
+// We declare an auto pointer to alpacaTelescopeDriver instance
+std::unique_ptr<alpacaTelescopeDriver> alpaca(new alpacaTelescopeDriver());
 
-SeestarDriver::SeestarDriver()
+#define RA_AXIS     0
+#define DEC_AXIS    1
+#define GUIDE_NORTH 0
+#define GUIDE_SOUTH 1
+#define GUIDE_WEST  0
+#define GUIDE_EAST  1
+
+alpacaTelescopeDriver::alpacaTelescopeDriver(): GI(this)
 {
+    DBG_SCOPE = static_cast<uint32_t>(INDI::Logger::getInstance().addDebugLevel("Scope Verbose", "SCOPE"));
+
     setVersion(1, 0);
     SetTelescopeCapability(
         TELESCOPE_CAN_GOTO |
@@ -42,14 +52,30 @@ SeestarDriver::SeestarDriver()
     m_ClientID = getpid();
 }
 
-const char *SeestarDriver::getDefaultName()
+const char *alpacaTelescopeDriver::getDefaultName()
 {
-    return "Seestar";
+    return "alpaca_telescope";
 }
 
-bool SeestarDriver::initProperties()
+bool alpacaTelescopeDriver::initProperties()
 {
     INDI::Telescope::initProperties();
+    
+    // Override the mount type property to make it writable in the INDI client
+    MountTypeSP.fill(getDeviceName(), "TELESCOPE_MOUNT_TYPE", "Mount Type", MOTION_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
+    
+    /* How fast do we guide compared to sidereal rate */
+    GuideRateNP[RA_AXIS].fill("GUIDE_RATE_WE", "W/E Rate", "%g", 0, 1, 0.1, 0.5);
+    GuideRateNP[DEC_AXIS].fill("GUIDE_RATE_NS", "N/S Rate", "%g", 0, 1, 0.1, 0.5);
+    GuideRateNP.fill(getDeviceName(), "GUIDE_RATE", "Guiding Rate", MOTION_TAB, IP_RW, 0,
+                     IPS_IDLE);
+
+    SlewRateSP[SLEW_GUIDE].fill("SLEW_GUIDE", "Guide", ISS_OFF);
+    SlewRateSP[SLEW_CENTERING].fill("SLEW_CENTERING", "Centering", ISS_OFF);
+    SlewRateSP[SLEW_FIND].fill("SLEW_FIND", "Find", ISS_OFF);
+    SlewRateSP[SLEW_MAX].fill("SLEW_MAX", "Max", ISS_ON);
+    SlewRateSP.fill(getDeviceName(), "TELESCOPE_SLEW_RATE", "Slew Rate", MOTION_TAB,
+                    IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
     
     // Add track modes: Sidereal, Lunar, Solar
     // Must be added after base class init but before properties are used
@@ -58,7 +84,7 @@ bool SeestarDriver::initProperties()
     AddTrackMode("TRACK_SOLAR", "Solar");
     
     // Server address
-    ServerAddressTP[HOST].fill("HOST", "Host", "seestar.local");
+    ServerAddressTP[HOST].fill("HOST", "Host", "alpaca.local");
     ServerAddressTP[PORT].fill("PORT", "Port", "32323");
     ServerAddressTP.fill(getDeviceName(), "SERVER_ADDRESS", "Server", CONNECTION_TAB, IP_RW, 60, IPS_IDLE);
     ServerAddressTP.load();
@@ -74,27 +100,74 @@ bool SeestarDriver::initProperties()
     
     // Set pier side to unknown to indicate this is not a GEM mount
     setPierSide(PIER_UNKNOWN);
-    
+
+    // RA is a rotating frame, while HA or Alt/Az is not
+    SetParkDataType(PARK_HA_DEC);
+
+    GI::initProperties(MOTION_TAB);
+
+    /* Add debug controls so we may debug driver if necessary */
+    addDebugControl();
+    setDriverInterface(getDriverInterface() | GUIDER_INTERFACE);
+    setDefaultPollingPeriod(250);
+
     return true;
 }
 
-bool SeestarDriver::updateProperties()
+bool alpacaTelescopeDriver::updateProperties()
 {
-    INDI::Telescope::updateProperties();
+    updateMountAndPierSide();
     
+    INDI::Telescope::updateProperties();
+        
     if (isConnected())
     {
         defineProperty(DeviceInfoTP);
+        defineProperty(GuideRateNP);
+        GuideRateNP.load();
+
+        if (InitPark())
+        {
+            if (isParked())
+            {
+                // at this point there is a valid ParkData.xml available
+                alignment.latitude = Angle(LocationNP[LOCATION_LATITUDE].getValue());
+                alignment.longitude = Angle(LocationNP[LOCATION_LONGITUDE].getValue());
+
+                // RA-parkposition in Ha full circle!!
+                m_currentRA = (alignment.lst() - Angle(ParkPositionNP[AXIS_RA].getValue(), Angle::ANGLE_UNITS::HOURS)).Hours();
+                m_currentDEC = ParkPositionNP[AXIS_DE].getValue();
+                Sync(m_currentRA, m_currentDEC);
+                m_currentAz = 180 + axisPrimary.position.Degrees(); // ALTAZ-Primary to Azm
+                m_currentAlt = axisSecondary.position.Degrees();
+            }
+            // If loading parking data is successful, we just set the default parking values.
+            SetAxis1ParkDefault(-6.);
+            SetAxis2ParkDefault(0.);
+        }
+        else
+        {
+            // Otherwise, we set all parking data to default in case no parking data is found.
+            SetAxis1Park(-6.);
+            SetAxis2Park(0.);
+            SetAxis1ParkDefault(-6.);
+            SetAxis2ParkDefault(0.);
+        }
+
+        sendTimeFromSystem();
     }
     else
     {
         deleteProperty(DeviceInfoTP);
+        deleteProperty(GuideRateNP);
     }
-    
+
+    GI::updateProperties();
+
     return true;
 }
 
-bool SeestarDriver::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
+bool alpacaTelescopeDriver::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
     if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
     {
@@ -110,7 +183,7 @@ bool SeestarDriver::ISNewText(const char *dev, const char *name, char *texts[], 
     return INDI::Telescope::ISNewText(dev, name, texts, names, n);
 }
 
-bool SeestarDriver::Connect()
+bool alpacaTelescopeDriver::Connect()
 {
     std::string host = ServerAddressTP[HOST].getText();
     int port = 32323;
@@ -121,7 +194,7 @@ bool SeestarDriver::Connect()
         LOG_ERROR("Invalid port, using default 32323");
     }
     
-    LOGF_INFO("Connecting to Seestar at %s:%d", host.c_str(), port);
+    LOGF_INFO("Connecting to alpaca at %s:%d", host.c_str(), port);
     
     httpClient = std::make_unique<httplib::Client>(host.c_str(), port);
     httpClient->set_connection_timeout(5);
@@ -130,12 +203,12 @@ bool SeestarDriver::Connect()
     nlohmann::json response;
     if (!sendAlpacaGET("/connected", response))
     {
-        LOG_ERROR("Failed to connect to Seestar");
+        LOG_ERROR("Failed to connect to alpaca");
         httpClient.reset();
         return false;
     }
     
-    LOGF_INFO("Seestar reachable, connected=%s", 
+    LOGF_INFO("alpaca reachable, connected=%s", 
               response.value("Value", false) ? "true" : "false");
     
     nlohmann::json request;
@@ -147,11 +220,11 @@ bool SeestarDriver::Connect()
         return false;
     }
     
-    LOG_INFO("Successfully connected to Seestar");
+    LOG_INFO("Successfully connected to alpaca");
     return true;
 }
 
-bool SeestarDriver::Disconnect()
+bool alpacaTelescopeDriver::Disconnect()
 {
     if (httpClient)
     {
@@ -160,11 +233,11 @@ bool SeestarDriver::Disconnect()
         sendAlpacaPUT("/connected", request, response);
         httpClient.reset();
     }
-    LOG_INFO("Disconnected from Seestar");
+    LOG_INFO("Disconnected from alpaca");
     return true;
 }
 
-bool SeestarDriver::Handshake()
+bool alpacaTelescopeDriver::Handshake()
 {
     nlohmann::json response;
     
@@ -226,16 +299,26 @@ bool SeestarDriver::Handshake()
     // Get initial coordinates
     ReadScopeStatus();
     
-    LOG_INFO("Seestar connected successfully");
+    LOG_INFO("alpaca connected successfully");
     return true;
 }
 
-bool SeestarDriver::ReadScopeStatus()
+bool alpacaTelescopeDriver::ReadScopeStatus()
 {
     nlohmann::json response;
     
+    if (m_MountType == Alignment::MOUNT_TYPE::ALTAZ && TrackState == SCOPE_TRACKING)
+        {
+        double sinAz = std::sin(DEG_TO_RAD(m_currentAz));
+        double cosAz = std::cos(DEG_TO_RAD(m_currentAz));
+        double sinAlt = std::sin(DEG_TO_RAD(m_currentAlt));
+        double cosAlt = std::cos(DEG_TO_RAD(m_currentAlt));
+        SetTrackRate((m_sinLat - ((cosAz * sinAlt * m_cosLat) / cosAlt)) * TRACKRATE_SIDEREAL,
+                    m_cosLat * sinAz * TRACKRATE_SIDEREAL);
+        }
+
     // Get RA/Dec
-    double newRA = currentRA, newDec = currentDec;
+    double newRA = m_currentRA, newDec = m_currentDEC;
     
     // Get current coordinates from Alpaca API
     bool raUpdated = false, decUpdated = false;
@@ -272,12 +355,12 @@ bool SeestarDriver::ReadScopeStatus()
                       newRA, newRA * 15.0, newDec);
         }
         
-        currentRA = newRA;
-        currentDec = newDec;
+        m_currentRA = newRA;
+        m_currentDEC = newDec;
         
         // Always update INDI properties even if position hasn't changed
         // This is important for tracking and for client display updates
-        NewRaDec(currentRA, currentDec);
+        NewRaDec(m_currentRA, m_currentDEC);
     }
     
     // Get slewing state
@@ -322,7 +405,7 @@ bool SeestarDriver::ReadScopeStatus()
     return true;
 }
 
-bool SeestarDriver::Goto(double ra, double dec)
+bool alpacaTelescopeDriver::Goto(double ra, double dec)
 {
     // Check if telescope is parked - must unpark before slewing
     if (isParked)
@@ -336,11 +419,6 @@ bool SeestarDriver::Goto(double ra, double dec)
     if (sendAlpacaGET("/athome", response) && response.contains("Value"))
     {
         bool atHome = response["Value"].get<bool>();
-        if (atHome)
-        {
-            LOG_ERROR("Telescope is at home position. Please initialize/open the telescope through the Seestar app first.");
-            return false;
-        }
     }
     
     // Ensure tracking is enabled before slewing
@@ -393,7 +471,7 @@ bool SeestarDriver::Goto(double ra, double dec)
     return true;
 }
 
-bool SeestarDriver::Sync(double ra, double dec)
+bool alpacaTelescopeDriver::Sync(double ra, double dec)
 {
     nlohmann::json request, response;
     request["RightAscension"] = ra;
@@ -409,7 +487,7 @@ bool SeestarDriver::Sync(double ra, double dec)
     return true;
 }
 
-bool SeestarDriver::Abort()
+bool alpacaTelescopeDriver::Abort()
 {
     nlohmann::json request, response;
     
@@ -424,7 +502,7 @@ bool SeestarDriver::Abort()
     return true;
 }
 
-bool SeestarDriver::Park()
+bool alpacaTelescopeDriver::Park()
 {
     nlohmann::json request, response;
     
@@ -477,7 +555,7 @@ bool SeestarDriver::Park()
     return true;
 }
 
-bool SeestarDriver::UnPark()
+bool alpacaTelescopeDriver::UnPark()
 {
     nlohmann::json response;
     
@@ -563,7 +641,7 @@ bool SeestarDriver::UnPark()
     return true;
 }
 
-bool SeestarDriver::SetCurrentPark()
+bool alpacaTelescopeDriver::SetCurrentPark()
 {
     // Save current RA/Dec position as park position
     // This allows user to park at current position via "Park Options -> Set Current"
@@ -601,7 +679,7 @@ bool SeestarDriver::SetCurrentPark()
     return true;
 }
 
-bool SeestarDriver::SetTrackEnabled(bool enabled)
+bool alpacaTelescopeDriver::SetTrackEnabled(bool enabled)
 {
     nlohmann::json request, response;
     request["Tracking"] = enabled;
@@ -617,7 +695,7 @@ bool SeestarDriver::SetTrackEnabled(bool enabled)
     return true;
 }
 
-bool SeestarDriver::SetTrackMode(uint8_t mode)
+bool alpacaTelescopeDriver::SetTrackMode(uint8_t mode)
 {
     nlohmann::json request, response;
     // Mode: 0=Sidereal, 1=Lunar, 2=Solar
@@ -633,7 +711,7 @@ bool SeestarDriver::SetTrackMode(uint8_t mode)
     return true;
 }
 
-bool SeestarDriver::MoveNS(INDI_DIR_NS dir, TelescopeMotionCommand command)
+bool alpacaTelescopeDriver::MoveNS(INDI_DIR_NS dir, TelescopeMotionCommand command)
 {
     nlohmann::json request, response;
     
@@ -675,7 +753,7 @@ bool SeestarDriver::MoveNS(INDI_DIR_NS dir, TelescopeMotionCommand command)
     return true;
 }
 
-bool SeestarDriver::MoveWE(INDI_DIR_WE dir, TelescopeMotionCommand command)
+bool alpacaTelescopeDriver::MoveWE(INDI_DIR_WE dir, TelescopeMotionCommand command)
 {
     nlohmann::json request, response;
     
@@ -717,7 +795,7 @@ bool SeestarDriver::MoveWE(INDI_DIR_WE dir, TelescopeMotionCommand command)
     return true;
 }
 
-bool SeestarDriver::saveConfigItems(FILE *fp)
+bool alpacaTelescopeDriver::saveConfigItems(FILE *fp)
 {
     INDI::Telescope::saveConfigItems(fp);
     ServerAddressTP.save(fp);
@@ -725,12 +803,12 @@ bool SeestarDriver::saveConfigItems(FILE *fp)
 }
 
 // Alpaca helper methods
-std::string SeestarDriver::getAlpacaURL(const std::string& endpoint)
+std::string alpacaTelescopeDriver::getAlpacaURL(const std::string& endpoint)
 {
     return "/api/v1/telescope/" + std::to_string(m_DeviceNumber) + endpoint;
 }
 
-bool SeestarDriver::sendAlpacaGET(const std::string& endpoint, nlohmann::json& response)
+bool alpacaTelescopeDriver::sendAlpacaGET(const std::string& endpoint, nlohmann::json& response)
 {
     if (!httpClient)
     {
@@ -778,7 +856,7 @@ bool SeestarDriver::sendAlpacaGET(const std::string& endpoint, nlohmann::json& r
     }
 }
 
-bool SeestarDriver::sendAlpacaPUT(const std::string& endpoint, const nlohmann::json& request, nlohmann::json& response)
+bool alpacaTelescopeDriver::sendAlpacaPUT(const std::string& endpoint, const nlohmann::json& request, nlohmann::json& response)
 {
     if (!httpClient)
     {
@@ -842,33 +920,42 @@ bool SeestarDriver::sendAlpacaPUT(const std::string& endpoint, const nlohmann::j
     }
 }
 
-// INDI driver boilerplate
 void ISGetProperties(const char *dev)
 {
-    seestar->ISGetProperties(dev);
+    /* First we let our parent populate */
+    alpaca->ISGetProperties(dev);
+
+    // Load mount type settings
+    mountTypeSP.load();
+
+    double Latitude = LocationNP[LOCATION_LATITUDE].getValue();
+    m_sinLat = std::sin(Latitude * 0.0174533);
+    m_cosLat = std::cos(Latitude * 0.0174533);
+    m_currentAz = 180 + axisPrimary.position.Degrees(); // Primary to Azm
+    m_currentAlt = axisSecondary.position.Degrees();
 }
 
 void ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
 {
-    seestar->ISNewSwitch(dev, name, states, names, n);
+    alpaca->ISNewSwitch(dev, name, states, names, n);
 }
 
 void ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
-    seestar->ISNewText(dev, name, texts, names, n);
+    alpaca->ISNewText(dev, name, texts, names, n);
 }
 
 void ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n)
 {
-    seestar->ISNewNumber(dev, name, values, names, n);
+    alpaca->ISNewNumber(dev, name, values, names, n);
 }
 
 void ISNewBLOB(const char *dev, const char *name, int sizes[], int blobsizes[], char *blobs[], char *formats[], char *names[], int n)
 {
-    seestar->ISNewBLOB(dev, name, sizes, blobsizes, blobs, formats, names, n);
+    alpaca->ISNewBLOB(dev, name, sizes, blobsizes, blobs, formats, names, n);
 }
 
 void ISSnoopDevice(XMLEle *root)
 {
-    seestar->ISSnoopDevice(root);
+    alpaca->ISSnoopDevice(root);
 }

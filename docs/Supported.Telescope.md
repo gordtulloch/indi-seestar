@@ -1,6 +1,6 @@
-# Seestar Alpaca Telescope API Support
+# alpaca Alpaca Telescope API Support
 
-This document provides comprehensive test results for all ASCOM Alpaca Telescope Specific Methods on the Seestar v1.1.2-1 firmware.
+This document provides comprehensive test results for all ASCOM Alpaca Telescope Specific Methods on the alpaca v1.1.2-1 firmware.
 
 **Tested Firmware Version:** v1.1.2-1  
 **Alpaca Port:** 32323  
@@ -135,7 +135,7 @@ This document provides comprehensive test results for all ASCOM Alpaca Telescope
 
 ## Conclusion
 
-The Seestar v1.1.2-1 has excellent support for ASCOM Alpaca telescope methods. Most query and control operations work correctly, with the main limitation being lack of Alt/Az slewing support. The implementation supports all essential telescope operations including tracking, slewing to equatorial coordinates, parking, and manual axis movement.
+The alpaca v1.1.2-1 has excellent support for ASCOM Alpaca telescope methods. Most query and control operations work correctly, with the main limitation being lack of Alt/Az slewing support. The implementation supports all essential telescope operations including tracking, slewing to equatorial coordinates, parking, and manual axis movement.
 
 ## ASCOM Error Codes
 

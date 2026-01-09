@@ -1,8 +1,8 @@
 /**
- * Comprehensive test program for all Seestar Alpaca filterwheel methods
+ * Comprehensive test program for all alpaca Alpaca filterwheel methods
  * 
  * This program tests all FilterWheel Specific Methods to determine
- * which are implemented in the Seestar firmware.
+ * which are implemented in the alpaca firmware.
  */
 
 #include <iostream>
@@ -170,7 +170,7 @@ void testPUTEndpoint(const std::string& baseUrl, const std::string& endpoint,
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     std::string baseUrl = "http://" + hostname + ":" + std::to_string(port) + "/api/v1/filterwheel/0";
     
     std::cout << "========================================" << std::endl;
-    std::cout << "Seestar FilterWheel Methods Test" << std::endl;
+    std::cout << "alpaca FilterWheel Methods Test" << std::endl;
     std::cout << "========================================" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "========================================" << std::endl;

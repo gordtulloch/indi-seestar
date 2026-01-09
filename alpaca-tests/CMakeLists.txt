@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(indi-seestar-tests)
+project(indi-alpaca-tests)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 11)

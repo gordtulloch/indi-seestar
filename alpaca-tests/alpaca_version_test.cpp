@@ -1,5 +1,5 @@
 /**
- * Test program to connect to Seestar telescope via ASCOM Alpaca
+ * Test program to connect to alpaca telescope via ASCOM Alpaca
  * and retrieve the interface version.
  * 
  * This program demonstrates basic HTTP communication with the Alpaca REST API
@@ -18,9 +18,9 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Get the Alpaca API version from the Seestar device
+ * Get the Alpaca API version from the alpaca device
  * 
- * @param hostname The hostname or IP address of the Seestar (e.g., "seestar.local")
+ * @param hostname The hostname or IP address of the alpaca (e.g., "alpaca.local")
  * @param port The Alpaca API port (default: 11111)
  * @return true if successful, false otherwise
  */
@@ -119,7 +119,7 @@ bool getManagementApiVersion(const std::string& hostname, int port = 11111) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     // Allow hostname override from command line

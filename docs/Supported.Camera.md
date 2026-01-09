@@ -1,9 +1,9 @@
-# Seestar Camera Specific Methods - Test Results
+# alpaca Camera Specific Methods - Test Results
 
-This document contains detailed test results for all ASCOM Alpaca Camera Specific Methods tested against Seestar firmware **v1.1.2-1**.
+This document contains detailed test results for all ASCOM Alpaca Camera Specific Methods tested against alpaca firmware **v1.1.2-1**.
 
 **Test Date**: 2025  
-**Test Device**: Seestar at seestar.local:32323  
+**Test Device**: alpaca at alpaca.local:32323  
 **Device Path**: `/api/v1/camera/0/`
 
 ## Summary
@@ -111,7 +111,7 @@ This document contains detailed test results for all ASCOM Alpaca Camera Specifi
 | `/offsets` | GET | ❌ Not Implemented | - | Error 1024 |
 
 **Gain Range**: 0-400 (continuous range, discrete list not available)  
-**Offset**: Not supported in Seestar firmware
+**Offset**: Not supported in alpaca firmware
 
 ### Readout Modes
 
@@ -185,7 +185,7 @@ The `/sensortype` endpoint returns integer values:
 - **4**: CMYG2 Bayer encoding
 - **5**: LRGB Truesense encoding
 
-Seestar reports **2** (RGGB Bayer encoding)
+alpaca reports **2** (RGGB Bayer encoding)
 
 ## Bayer Pattern Determination
 
@@ -197,7 +197,7 @@ The Bayer pattern starting at pixel (0,0) is: **GRBG**
 
 Standard patterns by offset:
 - (0,0): RGGB
-- (1,0): GRBG ← Seestar
+- (1,0): GRBG ← alpaca
 - (0,1): GBRG
 - (1,1): BGGR
 

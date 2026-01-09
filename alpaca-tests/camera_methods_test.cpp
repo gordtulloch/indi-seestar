@@ -1,8 +1,8 @@
 /**
- * Comprehensive test program for all Seestar Alpaca camera methods
+ * Comprehensive test program for all alpaca Alpaca camera methods
  * 
  * This program tests all Camera Specific Methods to determine
- * which are implemented in the Seestar firmware.
+ * which are implemented in the alpaca firmware.
  */
 
 #include <iostream>
@@ -122,7 +122,7 @@ void testEndpoint(const std::string& baseUrl, const std::string& endpoint, const
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     std::string baseUrl = "http://" + hostname + ":" + std::to_string(port) + "/api/v1/camera/0";
     
     std::cout << "========================================" << std::endl;
-    std::cout << "Seestar Camera Methods Test" << std::endl;
+    std::cout << "alpaca Camera Methods Test" << std::endl;
     std::cout << "========================================" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "========================================" << std::endl;

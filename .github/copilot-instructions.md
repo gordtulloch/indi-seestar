@@ -1,8 +1,8 @@
 # ASCOM Alpaca API Reference for Copilot
 
-This file contains reference information about the ASCOM Alpaca Device API to help with development of the INDI Seestar driver.
+This file contains reference information about the ASCOM Alpaca Device API to help with development of the INDI alpaca driver.
 
-## Seestar Alpaca Firmware Version
+## alpaca Alpaca Firmware Version
 **Current Version**: v1.1.2-1
 
 ## Official Documentation
@@ -124,7 +124,7 @@ Separate from the Device API, the Management API provides:
 - `/management/v1/description` - Device description
 - `/management/v1/configureddevices` - List of devices
 
-## Common Seestar Configuration
+## Common alpaca Configuration
 
 Based on testing:
 - **Alpaca Port**: 32323 (not the standard 11111)
@@ -141,21 +141,21 @@ Based on testing:
 
 2. **Connect**:
    ```
-   PUT http://seestar.local:32323/api/v1/telescope/0/connected
+   PUT http://alpaca.local:32323/api/v1/telescope/0/connected
    Body: Connected=true&ClientID=1&ClientTransactionID=1
    ```
 
 3. **Execute Commands**:
    ```
-   PUT http://seestar.local:32323/api/v1/telescope/0/action
+   PUT http://alpaca.local:32323/api/v1/telescope/0/action
    Body: Action=<action_name>&Parameters=&ClientID=1&ClientTransactionID=2
    ```
 
 4. **Query Status**:
    ```
-## Seestar Alpaca v1.1.2-1 Tested Features
+## alpaca Alpaca v1.1.2-1 Tested Features
 
-The Seestar v1.1.2-1 firmware has excellent ASCOM Alpaca support. See the comprehensive test results table in [README.md](../README.md#ascom-alpaca-api-support).
+The alpaca v1.1.2-1 firmware has excellent ASCOM Alpaca support. See the comprehensive test results table in [README.md](../README.md#ascom-alpaca-api-support).
 
 ### Key Findings from Testing
 
@@ -181,9 +181,9 @@ The Seestar v1.1.2-1 firmware has excellent ASCOM Alpaca support. See the compre
 
 For detailed test status of all methods, see the table in README.md.
 
-## Notes for Seestar Development
+## Notes for alpaca Development
 
-- The Seestar Alpaca v1.1.2-1 implements limited ASCOM Alpaca API
+- The alpaca Alpaca v1.1.2-1 implements limited ASCOM Alpaca API
 - Always check `ErrorNumber` in responses - Error 0 means success
 - Error codes: 1024 = not implemented, 1036 = action not implemented, 1279 = operational failure
 - Park/Unpark commands require native API (different port/protocol)
@@ -191,4 +191,4 @@ For detailed test status of all methods, see the table in README.md.
 - Telescope must be initialized (via app) before Alpaca commands work properly
 - Use the `/action` endpoint with device-specific action names
 - Always check `ErrorNumber` in responses - Error 1036 means action not implemented
-- The Seestar may have custom actions beyond standard Alpaca - these need to be discovered through documentation or experimentation
+- The alpaca may have custom actions beyond standard Alpaca - these need to be discovered through documentation or experimentation

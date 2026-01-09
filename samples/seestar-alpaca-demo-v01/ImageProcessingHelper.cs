@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-namespace Seestar_alpaca_demo
+namespace alpaca_alpaca_demo
 {
     internal static class ImageProcessingHelper
     {

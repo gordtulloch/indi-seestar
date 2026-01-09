@@ -1,10 +1,10 @@
-# INDI Seestar Driver - Development Checklist
+# INDI alpaca Driver - Development Checklist
 
-This document provides a comprehensive checklist for implementing a complete INDI driver for the Seestar telescope with all supported Alpaca API capabilities.
+This document provides a comprehensive checklist for implementing a complete INDI driver for the alpaca telescope with all supported Alpaca API capabilities.
 
 **Target**: Single multi-device INDI driver supporting Telescope, Camera, FilterWheel, and Focuser  
 **API**: ASCOM Alpaca REST API v1  
-**Firmware**: Seestar v1.1.2-1  
+**Firmware**: alpaca v1.1.2-1  
 **Reference**: [AlpacaAPIComparison.md](AlpacaAPIComparison.md)
 
 ---
@@ -481,7 +481,7 @@ This document provides a comprehensive checklist for implementing a complete IND
 ### Support & Maintenance
 - [ ] Set up issue tracking
 - [ ] Create support channel (forum/Discord)
-- [ ] Monitor firmware updates (Seestar)
+- [ ] Monitor firmware updates (alpaca)
 - [ ] Plan for INDI API changes
 - [ ] Schedule regular testing
 - [ ] Plan for feature requests

@@ -117,13 +117,13 @@ void showTelescopeStatus(const std::string& hostname, int port = 32323) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
     if (argc > 2) port = std::atoi(argv[2]);
     
-    std::cout << "=== Seestar Park/Unpark/Slew Test ===" << std::endl;
+    std::cout << "=== alpaca Park/Unpark/Slew Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "======================================" << std::endl << std::endl;
     

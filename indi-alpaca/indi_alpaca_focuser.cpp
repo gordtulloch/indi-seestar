@@ -1,5 +1,5 @@
 /*
-    INDI Seestar FilterWheel Driver
+    INDI alpaca Focuser Driver
     
     Copyright (C) 2024 Gord Tulloch
 
@@ -18,25 +18,27 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_seestar_filterwheel.h"
+#include "indi_alpaca_focuser.h"
 #include <cstring>
 #include <memory>
+#include <cmath>
 
-static std::unique_ptr<SeestarFilterWheel> seestarFilterWheel(new SeestarFilterWheel());
+static std::unique_ptr<alpacaFocuser> alpacaFocuser(new alpacaFocuser());
 
-SeestarFilterWheel::SeestarFilterWheel()
+alpacaFocuser::alpacaFocuser()
 {
     setVersion(1, 0);
+    FI::SetCapability(FOCUSER_CAN_ABS_MOVE | FOCUSER_CAN_ABORT);
 }
 
-const char *SeestarFilterWheel::getDefaultName()
+const char *alpacaFocuser::getDefaultName()
 {
-    return "Seestar FilterWheel";
+    return "alpaca Focuser";
 }
 
-bool SeestarFilterWheel::initProperties()
+bool alpacaFocuser::initProperties()
 {
-    INDI::FilterWheel::initProperties();
+    INDI::Focuser::initProperties();
 
     // Server address
     IUFillText(&ServerAddressT[0], "HOST", "Host", m_Host.c_str());
@@ -52,39 +54,38 @@ bool SeestarFilterWheel::initProperties()
     IUFillTextVector(&DeviceInfoTP, DeviceInfoT, 4, getDeviceName(), "DEVICE_INFO",
                      "Device Info", INFO_TAB, IP_RO, 60, IPS_IDLE);
 
-    // Focus offsets for each filter
-    IUFillNumber(&FocusOffsetsN[0], "OFFSET_0", "Dark Offset", "%.0f", -1000, 1000, 1, 0);
-    IUFillNumber(&FocusOffsetsN[1], "OFFSET_1", "IR Offset", "%.0f", -1000, 1000, 1, 0);
-    IUFillNumber(&FocusOffsetsN[2], "OFFSET_2", "LP Offset", "%.0f", -1000, 1000, 1, 0);
-    IUFillNumberVector(&FocusOffsetsNP, FocusOffsetsN, 3, getDeviceName(), "FOCUS_OFFSETS",
-                       "Focus Offsets", FILTER_TAB, IP_RO, 60, IPS_IDLE);
+    // Temperature monitoring (read-only)
+    IUFillNumber(&TemperatureN[0], "TEMPERATURE", "Temperature (°C)", "%.2f", -50, 100, 0, 0);
+    IUFillNumberVector(&TemperatureNP, TemperatureN, 1, getDeviceName(), "FOCUS_TEMPERATURE",
+                       "Temperature", MAIN_CONTROL_TAB, IP_RO, 60, IPS_IDLE);
 
     addDebugControl();
+    setDefaultPollingPeriod(500); // Poll every 500ms
 
     return true;
 }
 
-bool SeestarFilterWheel::updateProperties()
+bool alpacaFocuser::updateProperties()
 {
-    INDI::FilterWheel::updateProperties();
+    INDI::Focuser::updateProperties();
 
     if (isConnected())
     {
         defineProperty(&DeviceInfoTP);
-        defineProperty(&FocusOffsetsNP);
+        defineProperty(&TemperatureNP);
     }
     else
     {
         deleteProperty(DeviceInfoTP.name);
-        deleteProperty(FocusOffsetsNP.name);
+        deleteProperty(TemperatureNP.name);
     }
 
     return true;
 }
 
-bool SeestarFilterWheel::Connect()
+bool alpacaFocuser::Connect()
 {
-    LOG_INFO("Connecting to Seestar FilterWheel...");
+    LOG_INFO("Connecting to alpaca Focuser...");
 
     // Create HTTP client
     m_AlpacaClient.reset(new httplib::Client(m_Host, m_Port));
@@ -141,20 +142,21 @@ bool SeestarFilterWheel::Connect()
 
     IDSetText(&DeviceInfoTP, nullptr);
 
-    // Setup filter wheel
-    if (!setupFilterWheel())
+    // Setup focuser
+    if (!setupFocuser())
     {
-        LOG_ERROR("Failed to setup filter wheel");
+        LOG_ERROR("Failed to setup focuser");
         return false;
     }
 
-    LOG_INFO("Seestar FilterWheel connected successfully");
+    LOG_INFO("alpaca Focuser connected successfully");
+    SetTimer(getCurrentPollingPeriod());
     return true;
 }
 
-bool SeestarFilterWheel::Disconnect()
+bool alpacaFocuser::Disconnect()
 {
-    LOG_INFO("Disconnecting Seestar FilterWheel...");
+    LOG_INFO("Disconnecting alpaca Focuser...");
 
     // Disconnect the device
     nlohmann::json response;
@@ -162,88 +164,80 @@ bool SeestarFilterWheel::Disconnect()
 
     m_AlpacaClient.reset();
 
-    LOG_INFO("Seestar FilterWheel disconnected");
+    LOG_INFO("alpaca Focuser disconnected");
     return true;
 }
 
-bool SeestarFilterWheel::setupFilterWheel()
+bool alpacaFocuser::setupFocuser()
 {
     nlohmann::json response;
 
-    // Query filter names
-    if (sendAlpacaGET("/names", response) && response.contains("Value"))
+    // Query maximum position
+    if (sendAlpacaGET("/maxstep", response) && response.contains("Value"))
     {
-        auto names = response["Value"];
-        if (names.is_array())
-        {
-            // Resize filter name property
-            FilterNameTP.resize(names.size());
-            
-            // Set filter names
-            for (size_t i = 0; i < names.size(); i++)
-            {
-                std::string name = names[i].get<std::string>();
-                FilterNameTP[i].setText(name.c_str());
-                LOGF_INFO("Filter %zu: %s", i, name.c_str());
-            }
-
-            FilterNameTP.apply();
-            LOGF_INFO("Found %zu filters", names.size());
-        }
-    }
-
-    // Query focus offsets
-    if (sendAlpacaGET("/focusoffsets", response) && response.contains("Value"))
-    {
-        auto offsets = response["Value"];
-        if (offsets.is_array())
-        {
-            for (size_t i = 0; i < offsets.size() && i < 3; i++)
-            {
-                int offset = offsets[i].get<int>();
-                FocusOffsetsN[i].value = offset;
-                LOGF_INFO("Filter %zu focus offset: %d steps", i, offset);
-            }
-            FocusOffsetsNP.s = IPS_OK;
-            IDSetNumber(&FocusOffsetsNP, nullptr);
-        }
+        int maxStep = response["Value"].get<int>();
+        FocusMaxPosNP[0].setValue(maxStep);
+        FocusMaxPosNP.setState(IPS_OK);
+        FocusMaxPosNP.apply();
+        LOGF_INFO("Focuser max position: %d steps", maxStep);
     }
 
     // Query current position
-    int currentPos = QueryFilter();
+    int currentPos = getPosition();
     if (currentPos >= 0)
     {
-        LOGF_INFO("Current filter position: %d", currentPos);
-        FilterSlotNP[0].setValue(currentPos + 1); // INDI uses 1-based indexing
-        FilterSlotNP.apply();
+        FocusAbsPosNP[0].setValue(currentPos);
+        FocusAbsPosNP.setState(IPS_OK);
+        FocusAbsPosNP.apply();
+        LOGF_INFO("Current focuser position: %d steps", currentPos);
+    }
+
+    // Query temperature
+    if (sendAlpacaGET("/temperature", response) && response.contains("Value"))
+    {
+        double temp = response["Value"].get<double>();
+        TemperatureN[0].value = temp;
+        TemperatureNP.s = IPS_OK;
+        IDSetNumber(&TemperatureNP, nullptr);
+        LOGF_INFO("Focuser temperature: %.2f°C", temp);
+    }
+
+    // Check if absolute positioning is supported (should be true)
+    if (sendAlpacaGET("/absolute", response) && response.contains("Value"))
+    {
+        bool absolute = response["Value"].get<bool>();
+        if (!absolute)
+        {
+            LOG_WARN("Focuser does not support absolute positioning!");
+        }
+        else
+        {
+            LOG_INFO("Absolute positioning confirmed");
+        }
     }
 
     return true;
 }
 
-bool SeestarFilterWheel::SelectFilter(int position)
+IPState alpacaFocuser::MoveAbsFocuser(uint32_t targetTicks)
 {
-    // Convert from INDI 1-based to ASCOM 0-based
-    int targetPos = position - 1;
-
-    const char *filterName = (targetPos < FilterNameTP.size()) ? FilterNameTP[targetPos].getText() : "Unknown";
-    LOGF_INFO("Selecting filter position %d (%s)", targetPos, filterName);
-
-    // Check if already at position to avoid error 1279
-    int currentPos = QueryFilter();
-    if (currentPos == targetPos)
+    // Validate range
+    if (targetTicks > FocusMaxPosNP[0].getValue())
     {
-        LOGF_INFO("Already at position %d, no movement needed", targetPos);
-        return true;
+        LOGF_ERROR("Target position %u exceeds maximum %u", targetTicks, 
+                   static_cast<uint32_t>(FocusMaxPosNP[0].getValue()));
+        return IPS_ALERT;
     }
 
+    LOGF_INFO("Moving to absolute position: %u", targetTicks);
+
     nlohmann::json response;
-    std::string data = "Position=" + std::to_string(targetPos);
+    std::string data = "Position=" + std::to_string(targetTicks);
     
-    if (!sendAlpacaPUT("/position", data, response))
+    if (!sendAlpacaPUT("/move", data, response))
     {
-        LOGF_ERROR("Failed to set filter position to %d", targetPos);
-        return false;
+        LOGF_ERROR("Failed to move to position %u", targetTicks);
+        return IPS_ALERT;
     }
 
     // Check for errors
@@ -254,35 +248,126 @@ bool SeestarFilterWheel::SelectFilter(int position)
         {
             std::string errorMsg = response.contains("ErrorMessage") ? 
                                  response["ErrorMessage"].get<std::string>() : "Unknown error";
-            LOGF_ERROR("Error setting filter position: %d - %s", errorNum, errorMsg.c_str());
-            return false;
+            LOGF_ERROR("Error moving focuser: %d - %s", errorNum, errorMsg.c_str());
+            return IPS_ALERT;
         }
     }
 
-    LOGF_INFO("Filter position set to %d", targetPos);
+    m_TargetPosition = targetTicks;
+    m_Moving = true;
+    
+    return IPS_BUSY;
+}
+
+bool alpacaFocuser::AbortFocuser()
+{
+    LOG_INFO("Aborting focuser movement");
+
+    nlohmann::json response;
+    
+    if (!sendAlpacaPUT("/halt", "", response))
+    {
+        LOG_ERROR("Failed to halt focuser");
+        return false;
+    }
+
+    m_Moving = false;
+    FocusAbsPosNP.setState(IPS_IDLE);
+    FocusAbsPosNP.apply();
+    
+    LOG_INFO("Focuser movement halted");
     return true;
 }
 
-int SeestarFilterWheel::QueryFilter()
+void alpacaFocuser::TimerHit()
+{
+    if (!isConnected())
+        return;
+
+    // Update temperature
+    nlohmann::json response;
+    if (sendAlpacaGET("/temperature", response) && response.contains("Value"))
+    {
+        double temp = response["Value"].get<double>();
+        if (std::abs(temp - TemperatureN[0].value) > 0.1)
+        {
+            TemperatureN[0].value = temp;
+            TemperatureNP.s = IPS_OK;
+            IDSetNumber(&TemperatureNP, nullptr);
+        }
+    }
+
+    // Check if moving
+    if (m_Moving)
+    {
+        bool moving = isMoving();
+        
+        if (!moving)
+        {
+            // Movement completed
+            m_Moving = false;
+            
+            // Update current position
+            int currentPos = getPosition();
+            if (currentPos >= 0)
+            {
+                FocusAbsPosNP[0].setValue(currentPos);
+                FocusAbsPosNP.setState(IPS_OK);
+                FocusAbsPosNP.apply();
+                
+                LOGF_INFO("Focuser reached position: %d", currentPos);
+            }
+        }
+        else
+        {
+            // Still moving, update current position
+            int currentPos = getPosition();
+            if (currentPos >= 0)
+            {
+                FocusAbsPosNP[0].setValue(currentPos);
+                FocusAbsPosNP.apply();
+            }
+        }
+    }
+
+    SetTimer(getCurrentPollingPeriod());
+}
+
+bool alpacaFocuser::isMoving()
+{
+    nlohmann::json response;
+    
+    if (!sendAlpacaGET("/ismoving", response))
+    {
+        return false;
+    }
+
+    if (response.contains("Value"))
+    {
+        return response["Value"].get<bool>();
+    }
+
+    return false;
+}
+
+int alpacaFocuser::getPosition()
 {
     nlohmann::json response;
     
     if (!sendAlpacaGET("/position", response))
     {
-        LOG_ERROR("Failed to query filter position");
         return -1;
     }
 
     if (response.contains("Value"))
     {
-        int pos = response["Value"].get<int>();
-        return pos; // Return 0-based position
+        return response["Value"].get<int>();
     }
 
     return -1;
 }
 
-bool SeestarFilterWheel::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
+bool alpacaFocuser::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
     if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
     {
@@ -302,15 +387,15 @@ bool SeestarFilterWheel::ISNewText(const char *dev, const char *name, char *text
         }
     }
 
-    return INDI::FilterWheel::ISNewText(dev, name, texts, names, n);
+    return INDI::Focuser::ISNewText(dev, name, texts, names, n);
 }
 
-bool SeestarFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
+bool alpacaFocuser::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;
 
-    std::string url = "/api/v1/filterwheel/" + std::to_string(m_DeviceNumber) + endpoint;
+    std::string url = "/api/v1/focuser/" + std::to_string(m_DeviceNumber) + endpoint;
     
     LOGF_DEBUG("GET %s", url.c_str());
     
@@ -354,12 +439,12 @@ bool SeestarFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::js
     }
 }
 
-bool SeestarFilterWheel::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
+bool alpacaFocuser::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;
 
-    std::string url = "/api/v1/filterwheel/" + std::to_string(m_DeviceNumber) + endpoint;
+    std::string url = "/api/v1/focuser/" + std::to_string(m_DeviceNumber) + endpoint;
     
     // Add client info to data
     std::string fullData = data;
@@ -388,11 +473,11 @@ bool SeestarFilterWheel::sendAlpacaPUT(const std::string &endpoint, const std::s
     {
         response = nlohmann::json::parse(res->body);
         
-        // Check for Alpaca errors (but ignore error 1279 - already at position)
+        // Check for Alpaca errors
         if (response.contains("ErrorNumber"))
         {
             int errorNum = response["ErrorNumber"].get<int>();
-            if (errorNum != 0 && errorNum != 1279)
+            if (errorNum != 0)
             {
                 std::string errorMsg = response.contains("ErrorMessage") ? 
                                      response["ErrorMessage"].get<std::string>() : "Unknown error";

@@ -1,6 +1,6 @@
-# Seestar Alpaca Common Methods API Support
+# alpaca Alpaca Common Methods API Support
 
-This document provides comprehensive test results for all ASCOM Alpaca Common Methods (methods available to all device types) on the Seestar v1.1.2-1 firmware.
+This document provides comprehensive test results for all ASCOM Alpaca Common Methods (methods available to all device types) on the alpaca v1.1.2-1 firmware.
 
 **Tested Firmware Version:** v1.1.2-1  
 **Alpaca Port:** 32323  
@@ -20,11 +20,11 @@ These methods are defined in the ASCOM standard as being available for all devic
 | connect | PUT | /connect | ⚪ Not Tested | Async connect method |
 | disconnect | PUT | /disconnect | ❌ Not Implemented | Error 1024 (use connected=false) |
 | **Device Information** |
-| description | GET | /description | ✅ Working | Returns "Seestar S30_[id] Telescope" |
+| description | GET | /description | ✅ Working | Returns "alpaca S30_[id] Telescope" |
 | driverinfo | GET | /driverinfo | ✅ Working | Returns "Telescope V3" |
 | driverversion | GET | /driverversion | ✅ Working | Returns "1.1.2-1" |
 | interfaceversion | GET | /interfaceversion | ✅ Working | Returns 3 (ITelescopeV3) |
-| name | GET | /name | ✅ Working | Returns "Seestar S30_[id] Telescope" |
+| name | GET | /name | ✅ Working | Returns "alpaca S30_[id] Telescope" |
 | devicestate | GET | /devicestate | ❌ Not Implemented | Error 1024 |
 | **Command Methods** |
 | action | PUT | /action | ❌ Not Working | Error 1036: action not implemented |
@@ -70,11 +70,11 @@ These methods are defined in the ASCOM standard as being available for all devic
 ### Action/Command Methods
 - ❌ **No custom actions supported** - `supportedactions` returns empty array
 - ❌ **No command methods** - commandblind/commandbool/commandstring not implemented
-- This confirms that Seestar only implements standard ASCOM methods, not custom extensions via Alpaca
+- This confirms that alpaca only implements standard ASCOM methods, not custom extensions via Alpaca
 
 ## Connection Workflow
 
-The proper connection workflow for Seestar is:
+The proper connection workflow for alpaca is:
 
 1. **Connect:**
    ```
@@ -104,7 +104,7 @@ Note: Do not use the `/disconnect` endpoint as it's not implemented.
 
 ## Comparison with ASCOM Standard
 
-The Seestar implements a **subset** of the ASCOM Common Methods:
+The alpaca implements a **subset** of the ASCOM Common Methods:
 - ✅ Core connection management (connected GET/PUT)
 - ✅ All device information queries
 - ❌ Advanced connection methods (connecting, disconnect)

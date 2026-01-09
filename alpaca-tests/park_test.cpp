@@ -1,7 +1,7 @@
 /**
- * Test program to park the Seestar telescope
+ * Test program to park the alpaca telescope
  * 
- * This program sends the park command to the Seestar.
+ * This program sends the park command to the alpaca.
  */
 
 #include <iostream>
@@ -16,7 +16,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Connect to the Seestar device
+ * Connect to the alpaca device
  */
 bool connectDevice(const std::string& hostname, int port = 32323) {
     CURL* curl;
@@ -122,7 +122,7 @@ bool parkTelescope(const std::string& hostname, int port = 32323) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         port = std::atoi(argv[2]);
     }
     
-    std::cout << "=== Seestar Park Test ===" << std::endl;
+    std::cout << "=== alpaca Park Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "=========================" << std::endl << std::endl;
     

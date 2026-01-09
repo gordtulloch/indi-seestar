@@ -1,4 +1,4 @@
-namespace Seestar_alpaca_demo
+namespace alpaca_alpaca_demo
 {
     partial class Form1
     {

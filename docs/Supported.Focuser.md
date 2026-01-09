@@ -1,9 +1,9 @@
-# Seestar Focuser Specific Methods - Test Results
+# alpaca Focuser Specific Methods - Test Results
 
-This document contains detailed test results for all ASCOM Alpaca Focuser Specific Methods tested against Seestar firmware **v1.1.2-1**.
+This document contains detailed test results for all ASCOM Alpaca Focuser Specific Methods tested against alpaca firmware **v1.1.2-1**.
 
 **Test Date**: January 2, 2026  
-**Test Device**: Seestar at seestar.local:32323  
+**Test Device**: alpaca at alpaca.local:32323  
 **Device Path**: `/api/v1/focuser/0/`
 
 ## Summary
@@ -99,7 +99,7 @@ When attempting a relative move (negative or beyond maxstep), the focuser return
 ## Movement Behavior
 
 ### Absolute Positioning
-The Seestar focuser uses **absolute positioning only**:
+The alpaca focuser uses **absolute positioning only**:
 - Valid range: 0 to 2600
 - Position 0 = fully retracted (closest focus)
 - Position 2600 = fully extended (farthest focus)
@@ -171,39 +171,39 @@ The focuser does **not** support relative moves:
 
 ### Query Current Position
 ```bash
-curl "http://seestar.local:32323/api/v1/focuser/0/position"
+curl "http://alpaca.local:32323/api/v1/focuser/0/position"
 ```
 Response: `{"Value": 1314, "ErrorNumber": 0, ...}`
 
 ### Move to Absolute Position
 ```bash
-curl -X PUT "http://seestar.local:32323/api/v1/focuser/0/move" \
+curl -X PUT "http://alpaca.local:32323/api/v1/focuser/0/move" \
   -d "Position=1400&ClientID=1&ClientTransactionID=1"
 ```
 Response: `{"Value": null, "ErrorNumber": 0, ...}`
 
 ### Check If Moving
 ```bash
-curl "http://seestar.local:32323/api/v1/focuser/0/ismoving"
+curl "http://alpaca.local:32323/api/v1/focuser/0/ismoving"
 ```
 Response: `{"Value": false, "ErrorNumber": 0, ...}`
 
 ### Halt Movement
 ```bash
-curl -X PUT "http://seestar.local:32323/api/v1/focuser/0/halt" \
+curl -X PUT "http://alpaca.local:32323/api/v1/focuser/0/halt" \
   -d "ClientID=1&ClientTransactionID=2"
 ```
 Response: `{"Value": null, "ErrorNumber": 0, ...}`
 
 ### Read Temperature
 ```bash
-curl "http://seestar.local:32323/api/v1/focuser/0/temperature"
+curl "http://alpaca.local:32323/api/v1/focuser/0/temperature"
 ```
 Response: `{"Value": 27.0625, "ErrorNumber": 0, ...}`
 
 ## Relative Move Implementation
 
-Since the Seestar focuser only supports absolute positioning, the INDI driver must implement relative moves by:
+Since the alpaca focuser only supports absolute positioning, the INDI driver must implement relative moves by:
 
 ```cpp
 // Pseudocode for relative move
@@ -243,7 +243,7 @@ Based on testing:
 
 ## Comparison with ASCOM Standard
 
-| Feature | ASCOM Standard | Seestar Implementation |
+| Feature | ASCOM Standard | alpaca Implementation |
 |---------|---------------|------------------------|
 | Absolute positioning | Optional | ✅ Supported |
 | Relative positioning | Common | ❌ Not supported (error 1025) |
@@ -271,4 +271,4 @@ The test program connects to the focuser device, queries all GET endpoints, and 
 
 ## Conclusion
 
-The Seestar Focuser implementation is **good** with 89% of GET methods and 50% of PUT methods working. The key limitation is the **absolute-only positioning** - no relative moves are supported. This is a design choice that requires the INDI driver to manage relative positioning calculations. The 0-2600 step range provides adequate precision for focusing operations, and the halt command allows for movement interruption.
+The alpaca Focuser implementation is **good** with 89% of GET methods and 50% of PUT methods working. The key limitation is the **absolute-only positioning** - no relative moves are supported. This is a design choice that requires the INDI driver to manage relative positioning calculations. The 0-2600 step range provides adequate precision for focusing operations, and the halt command allows for movement interruption.

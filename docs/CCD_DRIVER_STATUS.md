@@ -1,15 +1,15 @@
-# Seestar CCD Driver Status
+# alpaca CCD Driver Status
 
 ## Build Status: ✅ COMPLETE
 
 Both INDI drivers have been successfully built and installed:
-- `indi_seestar_telescope` - Telescope control driver
-- `indi_seestar_ccd` - CCD camera driver
+- `indi_alpaca_telescope` - Telescope control driver
+- `indi_alpaca_ccd` - CCD camera driver
 
 ## Installation
 
 Drivers installed to: `/usr/local/bin/`
-Configuration file: `/usr/local/../share/indi/indi_seestar.xml`
+Configuration file: `/usr/local/../share/indi/indi_alpaca.xml`
 
 ## CCD Driver Features Implemented
 
@@ -37,7 +37,7 @@ Configuration file: `/usr/local/../share/indi/indi_seestar.xml`
 
 ## ASCOM Alpaca Camera API Support
 
-Based on testing with Seestar v1.1.2-1 firmware, the camera supports 40 of 58 ASCOM Camera methods (69% success rate).
+Based on testing with alpaca v1.1.2-1 firmware, the camera supports 40 of 58 ASCOM Camera methods (69% success rate).
 
 ### Working Methods (40/58)
 All essential camera operations are functional:
@@ -58,22 +58,22 @@ For full method test results, see: `Supported.Camera.md`
 
 Start both drivers together:
 ```bash
-indiserver -v indi_seestar_telescope indi_seestar_ccd
+indiserver -v indi_alpaca_telescope indi_alpaca_ccd
 ```
 
 Or start individually:
 ```bash
 # Telescope only
-indiserver -v indi_seestar_telescope
+indiserver -v indi_alpaca_telescope
 
 # CCD only
-indiserver -v indi_seestar_ccd
+indiserver -v indi_alpaca_ccd
 ```
 
 ### Connection Setup
 
 1. **Configure Alpaca Server Address**:
-   - Host: `seestar.local` (or IP address)
+   - Host: `alpaca.local` (or IP address)
    - Port: `32323`
    - Device Number: `0`
 
@@ -88,8 +88,8 @@ indiserver -v indi_seestar_ccd
 
 ### Example: KStars/Ekos
 1. Start INDI server with both drivers
-2. In Ekos, add "Seestar" telescope and "Seestar CCD" camera
-3. Configure connection (seestar.local:32323)
+2. In Ekos, add "alpaca" telescope and "alpaca CCD" camera
+3. Configure connection (alpaca.local:32323)
 4. Connect both devices
 5. Ready to image!
 
@@ -119,7 +119,7 @@ Built against **INDI Library 2.1.7** with proper API compatibility:
 
 ### Recommended Testing
 1. ✅ Verify driver starts without errors
-2. ✅ Confirm connection to Seestar
+2. ✅ Confirm connection to alpaca
 3. ⬜ Test short exposures (1-5s)
 4. ⬜ Test long exposures (30-300s)
 5. ⬜ Verify gain adjustment
@@ -135,14 +135,14 @@ Built against **INDI Library 2.1.7** with proper API compatibility:
 - **Streaming Mode**: Live view if camera supports it
 - **Fast Download**: Optimize image download if possible
 - **Error Recovery**: Robust handling of API errors
-- **Multiple Devices**: Support for multiple Seestars on network
+- **Multiple Devices**: Support for multiple alpacas on network
 
 ## Related Files
-- `indi_seestar_ccd.h` - CCD driver header
-- `indi_seestar_ccd.cpp` - CCD driver implementation
-- `indi_seestar.h` - Telescope driver header  
-- `indi_seestar.cpp` - Telescope driver implementation
-- `indi_seestar.xml` - INDI device registration
+- `indi_alpaca_ccd.h` - CCD driver header
+- `indi_alpaca_ccd.cpp` - CCD driver implementation
+- `indi_alpaca.h` - Telescope driver header  
+- `indi_alpaca.cpp` - Telescope driver implementation
+- `indi_alpaca.xml` - INDI device registration
 - `Supported.Camera.md` - Full API test results
 
 ## Build Information

@@ -1,5 +1,5 @@
 /*
-    INDI Seestar FilterWheel Driver
+    INDI alpaca Focuser Driver
     
     Copyright (C) 2024 Gord Tulloch
 
@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <indifilterwheel.h>
+#include <indifocuser.h>
 #include <memory>
 #include <string>
 
@@ -33,11 +33,11 @@
 #include <indijson.hpp>
 #endif
 
-class SeestarFilterWheel : public INDI::FilterWheel
+class alpacaFocuser : public INDI::Focuser
 {
 public:
-    SeestarFilterWheel();
-    virtual ~SeestarFilterWheel() = default;
+    alpacaFocuser();
+    virtual ~alpacaFocuser() = default;
 
     virtual const char *getDefaultName() override;
     virtual bool initProperties() override;
@@ -49,9 +49,10 @@ public:
     virtual bool ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n) override;
 
 protected:
-    // FilterWheel interface
-    virtual bool SelectFilter(int position) override;
-    virtual int QueryFilter() override;
+    // Focuser interface
+    virtual IPState MoveAbsFocuser(uint32_t targetTicks) override;
+    virtual bool AbortFocuser() override;
+    virtual void TimerHit() override;
 
 private:
     // Connection properties
@@ -62,20 +63,26 @@ private:
     ITextVectorProperty DeviceInfoTP;
     IText DeviceInfoT[4] {};
 
-    // Filter properties
-    INumberVectorProperty FocusOffsetsNP;
-    INumber FocusOffsetsN[3] {};
+    // Temperature property
+    INumberVectorProperty TemperatureNP;
+    INumber TemperatureN[1] {};
 
     // Alpaca communication
     std::unique_ptr<httplib::Client> m_AlpacaClient;
-    std::string m_Host = "seestar.local";
+    std::string m_Host = "alpaca.local";
     int m_Port = 32323;
     int m_DeviceNumber = 0;
     uint32_t m_ClientID = 1;
     uint32_t m_TransactionID = 0;
 
+    // Movement state
+    uint32_t m_TargetPosition = 0;
+    bool m_Moving = false;
+
     // Helper methods
-    bool setupFilterWheel();
+    bool setupFocuser();
+    bool isMoving();
+    int getPosition();
     bool sendAlpacaGET(const std::string &endpoint, nlohmann::json &response);
     bool sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response);
 };

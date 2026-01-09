@@ -1,34 +1,34 @@
 =============================================
 demo_v0.1_20251218
 
-·¢°æÈÕÖ¾£º
-×¢Òâ£¡demo ÏÖÔÚÃ»Ö§³ÖµÄ£¬²»´ú±íSeestar Alpaca driver²»Ö§³Ö£¬demoºóĞø»á³ÖĞø¸üĞÂ£¬´Ëdemo½ö×÷Îª¶ş´Î¿ª·¢²Î¿¼
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½
+×¢ï¿½â£¡demo ï¿½ï¿½ï¿½ï¿½Ã»Ö§ï¿½alpacaï¿½ï¿½Seestar Alpaca driverï¿½ï¿½Ö§ï¿½Ö£ï¿½demoï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½demoï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ï¿½Î¿ï¿½
 
-ÕûÌå
-- Ö§³ÖCamera¡¢Focuser¡¢Filter Wheel¡¢TelescopeµÄÉ¨ÃèºÍÁ¬½Ó
-- Ö§³ÖCamera¡¢Focuser¡¢Filter Wheel¡¢TelescopeµÄÁ¬½Ó×´Ì¬ºÍ²ÎÊıĞÅÏ¢ÏÔÊ¾
+ï¿½ï¿½ï¿½ï¿½
+- Ö§ï¿½ï¿½Cameraï¿½ï¿½Focuserï¿½ï¿½Filter Wheelï¿½ï¿½Telescopeï¿½ï¿½É¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+- Ö§ï¿½ï¿½Cameraï¿½ï¿½Focuserï¿½ï¿½Filter Wheelï¿½ï¿½Telescopeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Ê¾
 
 Camera
-- Ö§³ÖGainºÍExposureÉèÖÃ
-- Ö§³ÖStartExposureºÍÍ¼ÏñÏÔÊ¾
+- Ö§ï¿½ï¿½Gainï¿½ï¿½Exposureï¿½ï¿½ï¿½ï¿½
+- Ö§ï¿½ï¿½StartExposureï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ê¾
 
 Focuser
-- Ö§³ÖTarget position move
+- Ö§ï¿½ï¿½Target position move
 
 Filter Wheel
-- Ö§³ÖPosition Change£¨Dark¡¢IR¡¢LP£©
+- Ö§ï¿½ï¿½Position Changeï¿½ï¿½Darkï¿½ï¿½IRï¿½ï¿½LPï¿½ï¿½
 
 Telescope
-- Ö§³ÖÊÖ¶¯move
-- Ö§³ÖHome
-- Ö§³ÖÉèÖÃ¸ú×ÙËÙÂÊ
-- Ö§³ÖÉèÖÃÖ÷ÖáºÍ¸±ÖáµÄÊÖ¶¯moveËÙÂÊ
-- Ö§³ÖRA DEC Slew
-- Ö§³ÖAlt Az Slew
+- Ö§ï¿½ï¿½ï¿½Ö¶ï¿½move
+- Ö§ï¿½ï¿½Home
+- Ö§ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+- Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶ï¿½moveï¿½ï¿½ï¿½ï¿½
+- Ö§ï¿½ï¿½RA DEC Slew
+- Ö§ï¿½ï¿½Alt Az Slew
 
 
 ReleaseLog: 
-Note! Features not supported in this demo do not imply lack of support in the Seestar Alpaca driver; updates will be released continuously. 
+Note! Features not supported in this demo do not imply lack of support in the alpaca Alpaca driver; updates will be released continuously. 
 This demo is intended for secondary development reference only!
 
 Overall

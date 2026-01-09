@@ -5,7 +5,7 @@ using ASCOM.Alpaca.Discovery;
 using ASCOM.Common;
 using ASCOM.Common.Alpaca;
 
-namespace Seestar_alpaca_demo
+namespace alpaca_alpaca_demo
 {
     public static class DiscoveryHelpers
     {

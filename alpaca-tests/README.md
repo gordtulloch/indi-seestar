@@ -1,6 +1,6 @@
-# INDI Seestar Test Programs
+# INDI alpaca Test Programs
 
-This directory contains test programs to validate concepts and functionality before implementing the full INDI driver for the Seestar telescope.
+This directory contains test programs to validate concepts and functionality before implementing the full INDI driver for the alpaca telescope.
 
 ## Test Programs
 
@@ -39,38 +39,38 @@ The program will display:
 
 ### 2. play_sound_test
 
-Sends a play_sound action command to make the Seestar beep.
+Sends a play_sound action command to make the alpaca beep.
 
 **Purpose:**
-- Tests the action endpoint of the Seestar API
+- Tests the action endpoint of the alpaca API
 - Sends play_sound command using multiple methods (POST, PUT, native API)
 - Validates command execution and response handling
 - Provides audible confirmation of successful API communication
 
 **Usage:**
 ```bash
-# Using default hostname (seestar.local) and port (4700)
+# Using default hostname (alpaca.local) and port (4700)
 ./play_sound_test
 
 # Specify custom hostname
 ./play_sound_test 192.168.1.100
 
 # Specify custom hostname and port
-./play_sound_test seestar.local 32323
+./play_sound_test alpaca.local 32323
 ```
 
 **Expected Output:**
 The program will:
 - Try multiple API endpoint patterns
 - Display HTTP response codes and data
-- You should hear a beep from the Seestar if successful
+- You should hear a beep from the alpaca if successful
 
 ### 3. alpaca_version_test
 
-Tests basic connectivity to the Seestar telescope via ASCOM Alpaca REST API.
+Tests basic connectivity to the alpaca telescope via ASCOM Alpaca REST API.
 
 **Purpose:**
-- Connects to the Seestar at `seestar.local` (or specified hostname)
+- Connects to the alpaca at `alpaca.local` (or specified hostname)
 - Retrieves the management API versions
 - Retrieves the telescope interface version
 - Validates HTTP communication with the Alpaca API
@@ -89,14 +89,14 @@ make
 
 **Usage:**
 ```bash
-# Using default hostname (seestar.local) and port (11111)
+# Using default hostname (alpaca.local) and port (11111)
 ./alpaca_version_test
 
 # Specify custom hostname
 ./alpaca_version_test 192.168.1.100
 
 # Specify custom hostname and port
-./alpaca_version_test seestar.local 11111
+./alpaca_version_test alpaca.local 11111
 ```
 
 **Expected Output:**
@@ -107,7 +107,7 @@ The program will display:
 
 ## ASCOM Alpaca API Reference
 
-The Seestar telescope implements the ASCOM Alpaca REST API. Key endpoints:
+The alpaca telescope implements the ASCOM Alpaca REST API. Key endpoints:
 
 - **Management API Versions:** `GET /management/apiversions`
 - **Telescope Interface Version:** `GET /api/v1/telescope/{device_number}/interfaceversion`

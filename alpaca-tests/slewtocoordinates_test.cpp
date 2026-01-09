@@ -1,7 +1,7 @@
 /**
- * Test program to slew Seestar telescope to RA/Dec coordinates
+ * Test program to slew alpaca telescope to RA/Dec coordinates
  * 
- * This program connects to the Seestar and sends a slewtocoordinates command
+ * This program connects to the alpaca and sends a slewtocoordinates command
  * to move the telescope to specified Right Ascension and Declination.
  */
 
@@ -17,7 +17,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Connect to the Seestar device
+ * Connect to the alpaca device
  */
 bool connectDevice(const std::string& hostname, int port = 32323) {
     CURL* curl;
@@ -128,7 +128,7 @@ bool slewToCoordinates(const std::string& hostname, double ra, double dec, int p
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     // Default: M42 Orion Nebula (RA 5h 35m = 5.583h, Dec -5° 23' = -5.383°)
     double ra = 5.583;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         port = std::atoi(argv[4]);
     }
     
-    std::cout << "=== Seestar SlewToCoordinates Test ===" << std::endl;
+    std::cout << "=== alpaca SlewToCoordinates Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "Right Ascension: " << ra << " hours" << std::endl;
     std::cout << "Declination: " << dec << "°" << std::endl;

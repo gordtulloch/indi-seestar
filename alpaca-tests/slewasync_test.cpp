@@ -1,5 +1,5 @@
 /**
- * Test program to slew Seestar telescope to RA/Dec coordinates asynchronously
+ * Test program to slew alpaca telescope to RA/Dec coordinates asynchronously
  * 
  * This program uses slewtocoordinatesasync which returns immediately
  * and allows polling the slewing status.
@@ -143,7 +143,7 @@ bool isSlewing(const std::string& hostname, int port = 32323) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     double ra = 15.5;
     double dec = 50.25;
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     if (argc > 3) dec = std::atof(argv[3]);
     if (argc > 4) port = std::atoi(argv[4]);
     
-    std::cout << "=== Seestar Async Slew Test ===" << std::endl;
+    std::cout << "=== alpaca Async Slew Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "RA: " << ra << "h, Dec: " << dec << "°" << std::endl;
     std::cout << "================================" << std::endl << std::endl;

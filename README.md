@@ -1,6 +1,6 @@
-# INDI Seestar Driver Suite
+# INDI alpaca Driver Suite
 
-**Complete INDI driver implementation for the Seestar smart telescope via ASCOM Alpaca REST API**
+**Complete INDI driver implementation for the alpaca smart telescope via ASCOM Alpaca REST API**
 
 [![Status](https://img.shields.io/badge/Status-Testing-yellow)]()
 [![INDI](https://img.shields.io/badge/INDI-2.1.7-blue)]()
@@ -8,23 +8,23 @@
 
 ## 🎯 Project Overview
 
-This project provides a complete set of INDI drivers for the ZWO Seestar smart telescope, enabling control through standard astronomy software like KStars, Ekos, and any INDI-compatible application.
+This project provides a complete set of INDI drivers for the ZWO alpaca smart telescope, enabling control through standard astronomy software like KStars, Ekos, and any INDI-compatible application.
 
 ### Available Drivers
 
-- **indi_seestar_telescope** - Mount control (slewing, tracking, parking)
-- **indi_seestar_ccd** - Camera control (imaging, gain, temperature)
-- **indi_seestar_filterwheel** - Filter wheel control (Dark, IR, LP filters)
-- **indi_seestar_focuser** - Focuser control (0-2600 steps, absolute positioning)
+- **indi_alpaca_telescope** - Mount control (slewing, tracking, parking)
+- **indi_alpaca_ccd** - Camera control (imaging, gain, temperature)
+- **indi_alpaca_filterwheel** - Filter wheel control (Dark, IR, LP filters)
+- **indi_alpaca_focuser** - Focuser control (0-2600 steps, absolute positioning)
 
-All drivers communicate with the Seestar via its built-in ASCOM Alpaca REST API (port 32323).
+All drivers communicate with the alpaca via its built-in ASCOM Alpaca REST API (port 32323).
 
 ## 🚧 Current Status: Active Testing
 
 **⚠️ These drivers are currently under active testing. While fully implemented, they should be considered BETA quality.**
 
 - ✅ All four drivers built and installed
-- ✅ API compatibility verified with Seestar v1.1.2-1
+- ✅ API compatibility verified with alpaca v1.1.2-1
 - 🔄 Field testing in progress
 - 🔄 Integration testing with KStars/Ekos
 - 📋 Bug reports and feedback welcome
@@ -71,7 +71,7 @@ sudo apt-get install build-essential cmake libindi-dev libcfitsio-dev
 ### Building from Source
 
 ```bash
-cd indi-seestar/indi-seestar
+cd indi-alpaca/indi-alpaca
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
@@ -88,17 +88,17 @@ This installs:
 
 ```bash
 # All drivers together:
-indiserver -v indi_seestar_telescope indi_seestar_ccd indi_seestar_filterwheel indi_seestar_focuser
+indiserver -v indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser
 
 # Individual drivers:
-indiserver -v indi_seestar_telescope
-indiserver -v indi_seestar_ccd
+indiserver -v indi_alpaca_telescope
+indiserver -v indi_alpaca_ccd
 ```
 
 ### Connection Setup
 
 1. **Configure Server Address** (in INDI client):
-   - Host: `seestar.local` (or IP address)
+   - Host: `alpaca.local` (or IP address)
    - Port: `32323`
    - Device Number: `0`
 
@@ -110,10 +110,10 @@ indiserver -v indi_seestar_ccd
 
 1. Start INDI server with desired drivers
 2. In Ekos Equipment Profile:
-   - Mount: "Seestar"
-   - Camera: "Seestar CCD"
-   - Filter Wheel: "Seestar FilterWheel"
-   - Focuser: "Seestar Focuser"
+   - Mount: "alpaca"
+   - Camera: "alpaca CCD"
+   - Filter Wheel: "alpaca FilterWheel"
+   - Focuser: "alpaca Focuser"
 3. Configure connection settings for each device
 4. Connect and start imaging!
 
@@ -131,7 +131,7 @@ Detailed documentation available in the `docs/` folder:
 
 ### API Testing Results
 
-Comprehensive API testing completed against Seestar v1.1.2-1:
+Comprehensive API testing completed against alpaca v1.1.2-1:
 - **Overall**: 126/173 methods working (73% success rate)
 - All critical imaging and positioning functions operational
 - See documentation files for complete method-by-method results
@@ -160,7 +160,7 @@ See [alpaca-tests/README.md](alpaca-tests/README.md) for complete test program d
 
 ## 🐛 Known Issues & Limitations
 
-### Hardware Limitations (Seestar)
+### Hardware Limitations (alpaca)
 - No Alt/Az slewing support
 - No camera binning
 - No camera cooling control
@@ -177,7 +177,7 @@ See [alpaca-tests/README.md](alpaca-tests/README.md) for complete test program d
 Contributions welcome! This project is in active development.
 
 **How to help:**
-- Test the drivers with your Seestar
+- Test the drivers with your alpaca
 - Report bugs via GitHub Issues
 - Submit pull requests with fixes or enhancements
 - Improve documentation
@@ -185,13 +185,13 @@ Contributions welcome! This project is in active development.
 ## 📝 Project Structure
 
 ```
-indi-seestar/
-├── indi-seestar/           # Driver source code
-│   ├── indi_seestar.cpp/.h              # Telescope driver
-│   ├── indi_seestar_ccd.cpp/.h          # CCD driver
-│   ├── indi_seestar_filterwheel.cpp/.h  # FilterWheel driver
-│   ├── indi_seestar_focuser.cpp/.h      # Focuser driver
-│   ├── indi_seestar.xml                 # INDI device registration
+indi-alpaca/
+├── indi-alpaca/           # Driver source code
+│   ├── indi_alpaca.cpp/.h              # Telescope driver
+│   ├── indi_alpaca_ccd.cpp/.h          # CCD driver
+│   ├── indi_alpaca_filterwheel.cpp/.h  # FilterWheel driver
+│   ├── indi_alpaca_focuser.cpp/.h      # Focuser driver
+│   ├── indi_alpaca.xml                 # INDI device registration
 │   └── CMakeLists.txt                   # Build configuration
 ├── alpaca-tests/           # API validation test programs
 ├── docs/                   # Detailed documentation
@@ -202,7 +202,7 @@ indi-seestar/
 
 - [INDI Library](https://github.com/indilib/indi) - INDI framework
 - [ASCOM Alpaca API](https://ascom-standards.org/api/) - API specification
-- [Seestar Telescope](https://www.zwoastro.com/seestar/) - Hardware information
+- [alpaca Telescope](https://www.zwoastro.com/alpaca/) - Hardware information
 - [KStars/Ekos](https://edu.kde.org/kstars/) - Astronomy software
 
 ## 📄 License
@@ -213,7 +213,7 @@ LGPL-2.1 License - See individual source files for details.
 
 - INDI development team for the excellent framework
 - ASCOM Initiative for the Alpaca API standard
-- ZWO for the Seestar smart telescope
+- ZWO for the alpaca smart telescope
 - StellarMate for testing platform
 
 ## ⚠️ Disclaimer
@@ -222,6 +222,6 @@ This is an independent open-source project and is not officially endorsed or sup
 
 ---
 
-**Seestar Firmware Tested:** v1.1.2-1  
+**alpaca Firmware Tested:** v1.1.2-1  
 **INDI Library Version:** 2.1.7  
 **Last Updated:** January 2, 2026

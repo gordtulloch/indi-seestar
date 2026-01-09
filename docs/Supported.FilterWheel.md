@@ -1,9 +1,9 @@
-# Seestar FilterWheel Specific Methods - Test Results
+# alpaca FilterWheel Specific Methods - Test Results
 
-This document contains detailed test results for all ASCOM Alpaca FilterWheel Specific Methods tested against Seestar firmware **v1.1.2-1**.
+This document contains detailed test results for all ASCOM Alpaca FilterWheel Specific Methods tested against alpaca firmware **v1.1.2-1**.
 
 **Test Date**: January 2, 2026  
-**Test Device**: Seestar at seestar.local:32323  
+**Test Device**: alpaca at alpaca.local:32323  
 **Device Path**: `/api/v1/filterwheel/0/`
 
 ## Summary
@@ -132,19 +132,19 @@ The `/focusoffsets` endpoint returns an array of integer values representing the
 
 ### Query Current Position
 ```bash
-curl "http://seestar.local:32323/api/v1/filterwheel/0/position"
+curl "http://alpaca.local:32323/api/v1/filterwheel/0/position"
 ```
 Response: `{"Value": 1, "ErrorNumber": 0, ...}`
 
 ### Get Filter Names
 ```bash
-curl "http://seestar.local:32323/api/v1/filterwheel/0/names"
+curl "http://alpaca.local:32323/api/v1/filterwheel/0/names"
 ```
 Response: `{"Value": ["Dark","IR","LP"], "ErrorNumber": 0, ...}`
 
 ### Change Filter Position
 ```bash
-curl -X PUT "http://seestar.local:32323/api/v1/filterwheel/0/position" \
+curl -X PUT "http://alpaca.local:32323/api/v1/filterwheel/0/position" \
   -d "Position=2&ClientID=1&ClientTransactionID=1"
 ```
 Response: `{"Value": null, "ErrorNumber": 0, ...}`
@@ -166,4 +166,4 @@ The test program connects to the filterwheel device and queries all GET endpoint
 
 ## Conclusion
 
-The Seestar FilterWheel implementation is **excellent** with 100% of standard ASCOM methods working correctly. The three-position filter wheel with Dark, IR, and LP filters provides essential functionality for astrophotography. The focus offset system is implemented and ready for calibration.
+The alpaca FilterWheel implementation is **excellent** with 100% of standard ASCOM methods working correctly. The three-position filter wheel with Dark, IR, and LP filters provides essential functionality for astrophotography. The focus offset system is implemented and ready for calibration.

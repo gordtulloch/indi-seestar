@@ -1,18 +1,18 @@
-# Seestar FilterWheel Driver Status
+# alpaca FilterWheel Driver Status
 
 ## Build Status: ✅ COMPLETE
 
 The INDI FilterWheel driver has been successfully built and installed alongside the telescope and CCD drivers.
 
 **Installed Drivers:**
-- `indi_seestar_telescope` - Telescope control driver
-- `indi_seestar_ccd` - CCD camera driver  
-- `indi_seestar_filterwheel` - Filter wheel control driver (NEW)
+- `indi_alpaca_telescope` - Telescope control driver
+- `indi_alpaca_ccd` - CCD camera driver  
+- `indi_alpaca_filterwheel` - Filter wheel control driver (NEW)
 
 ## Installation
 
 Drivers installed to: `/usr/local/bin/`
-Configuration file: `/usr/local/../share/indi/indi_seestar.xml`
+Configuration file: `/usr/local/../share/indi/indi_alpaca.xml`
 
 ## FilterWheel Driver Features Implemented
 
@@ -39,7 +39,7 @@ Configuration file: `/usr/local/../share/indi/indi_seestar.xml`
 
 ## ASCOM Alpaca FilterWheel API Support
 
-Based on testing with Seestar v1.1.2-1 firmware, the filter wheel supports **100% of standard ASCOM methods** (3/3 GET, 1/1 PUT).
+Based on testing with alpaca v1.1.2-1 firmware, the filter wheel supports **100% of standard ASCOM methods** (3/3 GET, 1/1 PUT).
 
 ### Working Methods (4/4)
 All essential filter wheel operations are functional:
@@ -62,18 +62,18 @@ For full method test results, see: `Supported.FilterWheel.md`
 
 Start telescope, CCD, and filter wheel:
 ```bash
-indiserver -v indi_seestar_telescope indi_seestar_ccd indi_seestar_filterwheel
+indiserver -v indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel
 ```
 
 Or start filter wheel individually:
 ```bash
-indiserver -v indi_seestar_filterwheel
+indiserver -v indi_alpaca_filterwheel
 ```
 
 ### Connection Setup
 
 1. **Configure Alpaca Server Address**:
-   - Host: `seestar.local` (or IP address)
+   - Host: `alpaca.local` (or IP address)
    - Port: `32323`
    - Device Number: `0`
 
@@ -91,10 +91,10 @@ indiserver -v indi_seestar_filterwheel
 ### Example: KStars/Ekos Full Imaging Setup
 1. Start INDI server with all three drivers
 2. In Ekos, configure devices:
-   - Mount: "Seestar" telescope
-   - Camera: "Seestar CCD" camera
-   - Filter Wheel: "Seestar FilterWheel"
-3. Configure connection (seestar.local:32323) for all
+   - Mount: "alpaca" telescope
+   - Camera: "alpaca CCD" camera
+   - Filter Wheel: "alpaca FilterWheel"
+3. Configure connection (alpaca.local:32323) for all
 4. Connect all devices
 5. Use filter selection in capture module
 6. Ready for filtered imaging!
@@ -121,7 +121,7 @@ indiserver -v indi_seestar_filterwheel
 
 ## Focus Offset Calibration
 
-The Seestar reports focus offsets for each filter, but they are currently all set to 0. To calibrate:
+The alpaca reports focus offsets for each filter, but they are currently all set to 0. To calibrate:
 
 1. **Choose Reference Filter**: 
    - Select LP filter as reference (most common for imaging)
@@ -135,7 +135,7 @@ The Seestar reports focus offsets for each filter, but they are currently all se
 
 3. **Apply Offsets**:
    - Currently offsets are read-only from Alpaca API
-   - May require Seestar app configuration
+   - May require alpaca app configuration
    - Driver will read and display configured offsets
 
 4. **Verify Offsets**:
@@ -184,7 +184,7 @@ Built against **INDI Library 2.1.7** with proper API compatibility:
 
 ### Recommended Testing
 1. ✅ Verify driver starts without errors
-2. ✅ Confirm connection to Seestar
+2. ✅ Confirm connection to alpaca
 3. ⬜ Test filter position changes
 4. ⬜ Verify filter names display correctly
 5. ⬜ Check focus offsets are read
@@ -208,13 +208,13 @@ Built against **INDI Library 2.1.7** with proper API compatibility:
 - **Flat Field Automation**: Auto-select filters for flats
 
 ## Related Files
-- `indi_seestar_filterwheel.h` - FilterWheel driver header
-- `indi_seestar_filterwheel.cpp` - FilterWheel driver implementation
-- `indi_seestar_ccd.h` - CCD driver header
-- `indi_seestar_ccd.cpp` - CCD driver implementation
-- `indi_seestar.h` - Telescope driver header
-- `indi_seestar.cpp` - Telescope driver implementation
-- `indi_seestar.xml` - INDI device registration (3 devices)
+- `indi_alpaca_filterwheel.h` - FilterWheel driver header
+- `indi_alpaca_filterwheel.cpp` - FilterWheel driver implementation
+- `indi_alpaca_ccd.h` - CCD driver header
+- `indi_alpaca_ccd.cpp` - CCD driver implementation
+- `indi_alpaca.h` - Telescope driver header
+- `indi_alpaca.cpp` - Telescope driver implementation
+- `indi_alpaca.xml` - INDI device registration (3 devices)
 - `Supported.FilterWheel.md` - Full API test results
 
 ## Build Information
@@ -227,12 +227,12 @@ Built against **INDI Library 2.1.7** with proper API compatibility:
 
 ## Complete Driver Suite
 
-All three Seestar INDI drivers are now available:
+All three alpaca INDI drivers are now available:
 
 | Driver | Executable | Device Type | Key Features |
 |--------|-----------|-------------|--------------|
-| Telescope | `indi_seestar_telescope` | Mount | Slew, tracking, park/unpark, position query |
-| CCD | `indi_seestar_ccd` | Camera | Exposure, gain, subframe, Bayer, temperature |
-| FilterWheel | `indi_seestar_filterwheel` | Filter Wheel | 3-position wheel, filter names, focus offsets |
+| Telescope | `indi_alpaca_telescope` | Mount | Slew, tracking, park/unpark, position query |
+| CCD | `indi_alpaca_ccd` | Camera | Exposure, gain, subframe, Bayer, temperature |
+| FilterWheel | `indi_alpaca_filterwheel` | Filter Wheel | 3-position wheel, filter names, focus offsets |
 
-All drivers communicate via ASCOM Alpaca API to the Seestar device at port 32323.
+All drivers communicate via ASCOM Alpaca API to the alpaca device at port 32323.

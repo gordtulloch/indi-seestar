@@ -1,5 +1,5 @@
 /**
- * Test program to park the Seestar telescope using native API method
+ * Test program to park the alpaca telescope using native API method
  * 
  * This uses the method_sync action to call the native scope_park method.
  */
@@ -16,7 +16,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Send a PUT request to the Seestar API
+ * Send a PUT request to the alpaca API
  */
 bool sendPUT(const std::string& url, const std::string& postFields, std::string& response) {
     CURL* curl = curl_easy_init();
@@ -97,7 +97,7 @@ bool parkTelescope(const std::string& baseUrl) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     
     std::string baseUrl = "http://" + hostname + ":" + std::to_string(port) + "/api/v1/telescope/0";
     
-    std::cout << "=== Seestar Native Park Test ===" << std::endl;
+    std::cout << "=== alpaca Native Park Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "=================================" << std::endl << std::endl;
     

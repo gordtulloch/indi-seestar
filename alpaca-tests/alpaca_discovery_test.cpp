@@ -2,7 +2,7 @@
  * Test program to discover ASCOM Alpaca devices via UDP broadcast
  * 
  * This program sends UDP broadcast messages to port 32227 and listens
- * for responses from Alpaca-compatible devices like the Seestar telescope.
+ * for responses from Alpaca-compatible devices like the alpaca telescope.
  * 
  * The discovery protocol uses UDP broadcast with a specific message format
  * and devices respond with their IP address and Alpaca API port.
@@ -130,8 +130,8 @@ bool discoverAlpacaDevices(int timeoutSeconds = 5) {
     if (!devicesFound) {
         std::cout << "\nNo devices found." << std::endl;
         std::cout << "Make sure:" << std::endl;
-        std::cout << "  - Seestar is powered on" << std::endl;
-        std::cout << "  - Seestar is connected to the same network" << std::endl;
+        std::cout << "  - alpaca is powered on" << std::endl;
+        std::cout << "  - alpaca is connected to the same network" << std::endl;
         std::cout << "  - No firewall is blocking UDP port " << ALPACA_DISCOVERY_PORT << std::endl;
     }
     

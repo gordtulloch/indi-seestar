@@ -1,4 +1,4 @@
-namespace Seestar_alpaca_demo
+namespace alpaca_alpaca_demo
 {
     internal static class Program
     {

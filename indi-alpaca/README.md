@@ -1,6 +1,6 @@
-# INDI Seestar Driver
+# INDI alpaca Driver
 
-INDI driver implementation for the ZWO Seestar smart telescope using the ASCOM Alpaca REST API.
+INDI driver implementation for the ZWO alpaca smart telescope using the ASCOM Alpaca REST API.
 
 ## Build Requirements
 
@@ -25,7 +25,7 @@ sudo apt-get install \
 ## Building
 
 ```bash
-cd indi-seestar
+cd indi-alpaca
 mkdir build
 cd build
 cmake ..
@@ -41,42 +41,42 @@ sudo make install
 - libcurl 8.5.0
 - GCC 13.3.0
 
-Binary installed to: `/usr/local/bin/indi_seestar_telescope`
-XML config installed to: `/usr/local/share/indi/indi_seestar.xml`
+Binary installed to: `/usr/local/bin/indi_alpaca_telescope`
+XML config installed to: `/usr/local/share/indi/indi_alpaca.xml`
 
 ## Testing the Driver
 
 ### 1. Start the driver
 ```bash
-# Start INDI server with the Seestar driver
-indiserver indi_seestar_telescope
+# Start INDI server with the alpaca driver
+indiserver indi_alpaca_telescope
 
 # Or with verbose output for debugging
-indiserver -v indi_seestar_telescope
+indiserver -v indi_alpaca_telescope
 ```
 
 ### 2. Test with INDI tools
 ```bash
 # List all properties
-indi_getprop "Seestar.*"
+indi_getprop "alpaca.*"
 
 # Check connection status
-indi_getprop "Seestar.CONNECTION.*"
+indi_getprop "alpaca.CONNECTION.*"
 
-# Connect to the telescope (make sure Seestar is on and accessible)
-indi_setprop "Seestar.CONNECTION.CONNECT=On"
+# Connect to the telescope (make sure alpaca is on and accessible)
+indi_setprop "alpaca.CONNECTION.CONNECT=On"
 ```
 
 ### 3. Test with a GUI client
-- **KStars**: Add Seestar under Equipment Manager → Telescopes
+- **KStars**: Add alpaca under Equipment Manager → Telescopes
 - **INDI Control Panel**: Connect and control through the GUI
 
 ## Configuration
 
-The driver connects to the Seestar via its Alpaca API on port 32323.
+The driver connects to the alpaca via its Alpaca API on port 32323.
 
 Default settings:
-- **Host**: seestar.local
+- **Host**: alpaca.local
 - **Port**: 32323
 - **Device Number**: 0
 
@@ -130,13 +130,13 @@ See [AlpacaAPIComparison.md](../AlpacaAPIComparison.md) for complete API support
 ### Starting the Driver
 
 ```bash
-# Start INDI server with Seestar driver
-indiserver indi_seestar_telescope
+# Start INDI server with alpaca driver
+indiserver indi_alpaca_telescope
 ```
 
 ### With INDI Control Panel
 
-1. Start INDI server: `indiserver indi_seestar_telescope`
+1. Start INDI server: `indiserver indi_alpaca_telescope`
 2. Launch INDI Control Panel: `indi_control_panel`
 3. Connect to localhost:7624
 4. Configure connection settings (host/port)
@@ -147,7 +147,7 @@ indiserver indi_seestar_telescope
 1. Open KStars
 2. Go to Tools → Ekos
 3. Add Profile
-4. Select "Seestar" as telescope
+4. Select "alpaca" as telescope
 5. Start Ekos
 6. Connect and use
 
@@ -167,11 +167,11 @@ Test programs are available in the `../tests` directory for API validation.
 
 ## Troubleshooting
 
-### Cannot connect to Seestar
+### Cannot connect to alpaca
 
-1. Verify Seestar is powered on and on network
-2. Check hostname resolution: `ping seestar.local`
-3. Verify Alpaca API port: `curl http://seestar.local:32323/api/v1/telescope/0/connected`
+1. Verify alpaca is powered on and on network
+2. Check hostname resolution: `ping alpaca.local`
+3. Verify Alpaca API port: `curl http://alpaca.local:32323/api/v1/telescope/0/connected`
 4. Check firewall settings
 
 ### Operations fail with "Invalid while parked"
@@ -198,7 +198,7 @@ Gord Tulloch
 
 - INDI Library developers
 - ASCOM Initiative for Alpaca API specification
-- ZWO for Seestar hardware
+- ZWO for alpaca hardware
 - Testing data from comprehensive API validation
 
 ## Version History

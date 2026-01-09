@@ -1,7 +1,7 @@
 /**
- * Test program to play a sound on the Seestar telescope
+ * Test program to play a sound on the alpaca telescope
  * 
- * This program connects to the Seestar and then sends a play_sound 
+ * This program connects to the alpaca and then sends a play_sound 
  * action command via its REST API to trigger an audible beep or sound.
  */
 
@@ -17,9 +17,9 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Connect to the Seestar device
+ * Connect to the alpaca device
  * 
- * @param hostname The hostname or IP address of the Seestar
+ * @param hostname The hostname or IP address of the alpaca
  * @param port The API port
  * @return true if successful, false otherwise
  */
@@ -155,7 +155,7 @@ bool playSound(const std::string& hostname, int port = 32323) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;  // Alpaca API port
     
     // Allow hostname override from command line
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
         port = std::atoi(argv[2]);
     }
     
-    std::cout << "=== Seestar Play Sound Test ===" << std::endl;
+    std::cout << "=== alpaca Play Sound Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "================================" << std::endl << std::endl;
     
@@ -200,12 +200,12 @@ int main(int argc, char* argv[]) {
     std::cout << "\n================================" << std::endl;
     if (success) {
         std::cout << "Play sound command sent successfully!" << std::endl;
-        std::cout << "Listen for a beep from the Seestar." << std::endl;
+        std::cout << "Listen for a beep from the alpaca." << std::endl;
         return 0;
     } else {
         std::cout << "Failed to play sound." << std::endl;
         std::cout << "\nTroubleshooting:" << std::endl;
-        std::cout << "  - Verify Seestar is powered on and connected" << std::endl;
+        std::cout << "  - Verify alpaca is powered on and connected" << std::endl;
         std::cout << "  - Make sure device is connected first" << std::endl;
         std::cout << "  - Check if play_sound action is supported" << std::endl;
         return 1;

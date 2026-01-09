@@ -2,7 +2,7 @@ using ASCOM.Alpaca.Discovery;
 using ASCOM.Common;
 using ASCOM.Common.DeviceInterfaces;
 
-namespace Seestar_alpaca_demo
+namespace alpaca_alpaca_demo
 {
     public partial class Form1 : Form
     {

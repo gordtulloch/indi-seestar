@@ -184,7 +184,7 @@ void testPutCommand(const std::string& baseUrl, const std::string& endpoint,
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     
     if (argc > 1) hostname = argv[1];
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     int clientTxId = 0;
     
     std::cout << "========================================" << std::endl;
-    std::cout << "Seestar ASCOM Common Methods Test" << std::endl;
+    std::cout << "alpaca ASCOM Common Methods Test" << std::endl;
     std::cout << "========================================" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "Device: telescope/0" << std::endl;

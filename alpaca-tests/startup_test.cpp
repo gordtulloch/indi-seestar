@@ -1,7 +1,7 @@
 /**
- * Test program to run startup sequence on Seestar telescope
+ * Test program to run startup sequence on alpaca telescope
  * 
- * This program connects to the Seestar and sends the action_start_up_sequence
+ * This program connects to the alpaca and sends the action_start_up_sequence
  * command which initializes the telescope for operation.
  */
 
@@ -17,7 +17,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 }
 
 /**
- * Connect to the Seestar device
+ * Connect to the alpaca device
  */
 bool connectDevice(const std::string& hostname, int port = 32323) {
     CURL* curl;
@@ -130,7 +130,7 @@ bool startupSequence(const std::string& hostname, double latitude, double longit
 }
 
 int main(int argc, char* argv[]) {
-    std::string hostname = "seestar.local";
+    std::string hostname = "alpaca.local";
     int port = 32323;
     // Default location: set to 0,0 or provide your actual location
     double latitude = 0.0;
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
         port = std::atoi(argv[4]);
     }
     
-    std::cout << "=== Seestar Startup Sequence Test ===" << std::endl;
+    std::cout << "=== alpaca Startup Sequence Test ===" << std::endl;
     std::cout << "Target: " << hostname << ":" << port << std::endl;
     std::cout << "Location: Lat=" << latitude << "° Lon=" << longitude << "°" << std::endl;
     std::cout << "======================================" << std::endl << std::endl;
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     std::cout << "\n======================================" << std::endl;
     if (success) {
         std::cout << "Startup sequence initiated successfully!" << std::endl;
-        std::cout << "The Seestar should be initializing..." << std::endl;
+        std::cout << "The alpaca should be initializing..." << std::endl;
         std::cout << "\nNote: This may take some time as the telescope" << std::endl;
         std::cout << "goes through its initialization procedures." << std::endl;
         return 0;

@@ -1,11 +1,11 @@
-# Seestar Alpaca API - Capability Comparison Table
+# alpaca Alpaca API - Capability Comparison Table
 
-This document provides a comprehensive comparison between the **ASCOM Alpaca Device API standard** and the **Seestar v1.1.2-1 firmware implementation**.
+This document provides a comprehensive comparison between the **ASCOM Alpaca Device API standard** and the **alpaca v1.1.2-1 firmware implementation**.
 
 **Test Date**: January 2, 2026  
 **Firmware Version**: v1.1.2-1  
 **Alpaca API Version**: v1  
-**Device**: Seestar at seestar.local:32323
+**Device**: alpaca at alpaca.local:32323
 
 ## Overall Implementation Summary
 
@@ -30,7 +30,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ## Common Methods (ASCOM Methods Common To All Devices)
 
-| Method | Type | ASCOM Std | Seestar Status | Notes |
+| Method | Type | ASCOM Std | alpaca Status | Notes |
 |--------|------|-----------|----------------|-------|
 | `/connected` | GET | Required | ✅ Working | Returns connection state |
 | `/connected` | PUT | Required | ✅ Working | Establishes connection |
@@ -55,7 +55,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Capabilities (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/canfindhome` | Optional | ✅ Working | true | FindHome supported |
 | `/canpark` | Optional | ✅ Working | true | Parking supported |
@@ -78,7 +78,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Position & State (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/altitude` | Required | ✅ Working | 41.95° | Current altitude |
 | `/azimuth` | Required | ✅ Working | 143.03° | Current azimuth |
@@ -95,7 +95,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Site Information (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/sitelatitude` | Required | ✅ Working | 40.0° | Observer latitude |
 | `/sitelongitude` | Required | ✅ Working | -110.0° | Observer longitude |
@@ -106,7 +106,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Rates (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/axisrates` | Required | ✅ Working | Array | Rates for both axes |
 | `/declinationrate` | Optional | ✅ Working | 0.0 | Current dec rate |
@@ -120,7 +120,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Properties (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/alignmentmode` | Required | ✅ Working | 1 (Polar aligned) |
 | `/aperturearea` | Optional | 🔴 Failed | HTTP request failed |
@@ -135,7 +135,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Target Coordinates (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/targetdeclination` | Optional | ⚠️ Partial | Error 1026 until set |
 | `/targetrightascension` | Optional | ⚠️ Partial | Error 1026 until set |
@@ -145,7 +145,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Movement Commands (PUT Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/abortslew` | Required | ✅ Working | Stops slewing |
 | `/findhome` | Optional | 📝 State Dependent | Fails when parked |
@@ -165,7 +165,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Tracking & Rates (PUT Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/tracking` | Required | ✅ Working | Enable/disable tracking |
 | `/trackingrate` | Optional | ✅ Working | Set to 0/1/2 (Sidereal/Lunar/Solar) |
@@ -178,7 +178,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Axis Movement (PUT Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/moveaxis` | Optional | ✅ Working | Manual axis control (both axes) |
 | `/pulseguide` | Optional | 📝 State Dependent | Requires tracking enabled |
@@ -187,7 +187,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Telescope Configuration (PUT Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/sitelatitude` | Required | ❌ Not Implemented | Error 1024 |
 | `/sitelongitude` | Required | ❌ Not Implemented | Error 1024 |
@@ -208,7 +208,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Properties (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/cameraxsize` | Required | ✅ Working | 1080 | Sensor width in pixels |
 | `/cameraysize` | Required | ✅ Working | 1920 | Sensor height in pixels |
@@ -226,7 +226,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Capabilities (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/canabortexposure` | Required | ✅ Working | true | Can abort exposures |
 | `/canasymmetricbin` | Optional | ✅ Working | false | Symmetric only |
@@ -241,7 +241,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Binning (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/maxbinx` | Required | ✅ Working | 1 | No binning |
 | `/maxbiny` | Required | ✅ Working | 1 | No binning |
@@ -252,7 +252,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Subframe (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/startx` | Required | ✅ Working | 0 | Subframe start X |
 | `/starty` | Required | ✅ Working | 0 | Subframe start Y |
@@ -263,7 +263,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Gain & Offset (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/gain` | Optional | ✅ Working | 0 | Current gain |
 | `/gainmin` | Optional | ✅ Working | 0 | Minimum gain |
@@ -278,7 +278,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Readout (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/readoutmode` | Optional | ✅ Working | 0 | Current mode |
 | `/readoutmodes` | Optional | ✅ Working | ["0"] | Single mode |
@@ -288,7 +288,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Temperature (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/ccdtemperature` | Optional | ✅ Working | 26.94°C | Current temp |
 | `/setccdtemperature` | Optional | ❌ Not Implemented | - | Error 1024 |
@@ -300,7 +300,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Camera Exposure (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/camerastate` | Required | ✅ Working | 0 | Idle/Exposing/etc |
 | `/imageready` | Required | ✅ Working | false | Image available |
@@ -321,7 +321,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ## FilterWheel Specific Methods
 
-| Method | Type | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | Type | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|------|-----------|----------------|------------|-------|
 | `/position` | GET | Required | ✅ Working | 1 | Current position (IR) |
 | `/names` | GET | Required | ✅ Working | ["Dark","IR","LP"] | Filter names |
@@ -336,7 +336,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Focuser Capabilities (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/absolute` | Required | ✅ Working | true | Absolute positioning |
 | `/tempcompavailable` | Optional | ✅ Working | false | No temp comp |
@@ -345,7 +345,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Focuser Properties (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/maxstep` | Required | ✅ Working | 2600 | Maximum position |
 | `/maxincrement` | Required | ✅ Working | 2600 | Max single move |
@@ -356,7 +356,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Focuser Temperature (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/temperature` | Optional | ✅ Working | 27.06°C | Current temp |
 | `/tempcomp` | Optional | ✅ Working | false | Comp state |
@@ -365,7 +365,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Focuser State (GET Methods)
 
-| Method | ASCOM Std | Seestar Status | Test Value | Notes |
+| Method | ASCOM Std | alpaca Status | Test Value | Notes |
 |--------|-----------|----------------|------------|-------|
 | `/ismoving` | Required | ✅ Working | false | Movement status |
 
@@ -373,7 +373,7 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ### Focuser Movement (PUT Methods)
 
-| Method | ASCOM Std | Seestar Status | Notes |
+| Method | ASCOM Std | alpaca Status | Notes |
 |--------|-----------|----------------|-------|
 | `/move` | Required | ⚠️ Partial | Absolute only (no relative) |
 | `/halt` | Required | ✅ Working | Stop movement |
@@ -418,9 +418,9 @@ This document provides a comprehensive comparison between the **ASCOM Alpaca Dev
 
 ## Missing ASCOM Device Types
 
-The following ASCOM device types are **not implemented** in Seestar:
+The following ASCOM device types are **not implemented** in alpaca:
 
-| Device Type | Purpose | Standard Methods | Seestar Status |
+| Device Type | Purpose | Standard Methods | alpaca Status |
 |-------------|---------|------------------|----------------|
 | **Rotator** | Camera/instrument rotation | Position, angle, sync | ❌ Not Available |
 | **Dome** | Observatory dome control | Shutter, azimuth, slaving | ❌ Not Available |
@@ -467,7 +467,7 @@ The following ASCOM device types are **not implemented** in Seestar:
 
 ## Conclusion
 
-The Seestar v1.1.2-1 Alpaca implementation provides **73% overall compliance** with the ASCOM Alpaca Device API standard, with **excellent support for core functionality**:
+The alpaca v1.1.2-1 Alpaca implementation provides **73% overall compliance** with the ASCOM Alpaca Device API standard, with **excellent support for core functionality**:
 
 - **Excellent** (90%+): FilterWheel, Telescope position/state
 - **Good** (70-89%): Telescope overall, Camera, Focuser
