@@ -50,6 +50,7 @@ alpacaTelescopeDriver::alpacaTelescopeDriver()
         4
     );
     m_ClientID = getpid();
+    setSupportedConnections(CONNECTION_TCP);
 }
 
 const char *alpacaTelescopeDriver::getDefaultName()

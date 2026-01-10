@@ -27,6 +27,7 @@ static std::unique_ptr<AlpacaFilterWheel> alpacaFilterWheel(new AlpacaFilterWhee
 AlpacaFilterWheel::AlpacaFilterWheel()
 {
     setVersion(1, 0);
+    setSupportedConnections(CONNECTION_TCP);
 }
 
 const char *AlpacaFilterWheel::getDefaultName()

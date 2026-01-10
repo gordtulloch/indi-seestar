@@ -29,6 +29,7 @@ AlpacaFocuser::AlpacaFocuser()
 {
     setVersion(1, 0);
     FI::SetCapability(FOCUSER_CAN_ABS_MOVE | FOCUSER_CAN_ABORT);
+    setSupportedConnections(CONNECTION_TCP);
 }
 
 const char *AlpacaFocuser::getDefaultName()
