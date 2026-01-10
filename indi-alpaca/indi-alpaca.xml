@@ -24,10 +24,4 @@
             <version>1.0</version>
         </device>
     </devGroup>
-    <devGroup group="Domes">
-        <device label="Alpaca Dome" manufacturer="Alpaca">
-            <driver name="Alpaca Dome">indi_alpaca_dome</driver>
-            <version>1.1</version>
-        </device>
-    </devGroup>
 </driversList>

@@ -61,6 +61,9 @@ bool alpacaTelescopeDriver::initProperties()
 {
     INDI::Telescope::initProperties();
     
+    // Set connection mode to TCP only
+    setTelescopeConnection(CONNECTION_TCP);
+    
     // Override the mount type property to make it writable in the INDI client
     MountTypeSP.fill(getDeviceName(), "TELESCOPE_MOUNT_TYPE", "Mount Type", MOTION_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
 
@@ -148,6 +151,7 @@ bool alpacaTelescopeDriver::ISNewText(const char *dev, const char *name, char *t
             ServerAddressTP.update(texts, names, n);
             ServerAddressTP.setState(IPS_OK);
             ServerAddressTP.apply();
+            saveConfig(ServerAddressTP);
             return true;
         }
     }
@@ -158,6 +162,9 @@ bool alpacaTelescopeDriver::ISNewText(const char *dev, const char *name, char *t
 void alpacaTelescopeDriver::ISGetProperties(const char *dev)
 {
     INDI::Telescope::ISGetProperties(dev);
+    
+    // Always define server address property
+    defineProperty(ServerAddressTP);
 }
 
 bool alpacaTelescopeDriver::ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)

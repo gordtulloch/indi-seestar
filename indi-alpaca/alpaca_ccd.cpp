@@ -53,14 +53,17 @@ bool AlpacaCCD::initProperties()
     // Call base class initProperties
     INDI::CCD::initProperties();
 
+    // Disable automatic connection handling - we manage it ourselves
+    setActiveConnection(nullptr);
+
     // Cooler properties
     CoolerSP[INDI_ENABLED].fill("COOLER_ON", "ON", ISS_OFF);
     CoolerSP[INDI_DISABLED].fill("COOLER_OFF", "OFF", ISS_ON);
     CoolerSP.fill(getDeviceName(), "CCD_COOLER", "Cooler", MAIN_CONTROL_TAB, IP_WO, ISR_1OFMANY, 0, IPS_IDLE);
 
     // Setup server address properties
-    ServerAddressTP[0].fill("HOST", "Host", "");
-    ServerAddressTP[1].fill("PORT", "Port", "11111");
+    ServerAddressTP[0].fill("HOST", "Host", "alpaca.local");
+    ServerAddressTP[1].fill("PORT", "Port", "32323");
     ServerAddressTP.fill(getDeviceName(), "SERVER_ADDRESS", "Server", CONNECTION_TAB, IP_RW, 60, IPS_IDLE);
     ServerAddressTP.load();
 
@@ -1025,12 +1028,7 @@ bool AlpacaCCD::sendAlpacaPUT(const std::string& endpoint, const nlohmann::json&
     form_data += "ClientID=" + std::to_string(getpid());
     form_data += "&ClientTransactionID=" + std::to_string(getTransactionId());
 
-    httplib::Headers headers =
-    {
-        {"Content-Type", "application/x-www-form-urlencoded"}
-    };
-
-    auto result = httpClient->Put(url.c_str(), headers, form_data, "application/x-www-form-urlencoded");
+    auto result = httpClient->Put(url.c_str(), form_data, "application/x-www-form-urlencoded");
 
     if (!result)
     {

@@ -48,7 +48,6 @@ Binaries installed to: `/usr/local/bin/`
 - `indi_alpaca_ccd`
 - `indi_alpaca_filterwheel`
 - `indi_alpaca_focuser`
-- `indi_alpaca_dome`
 
 XML config installed to: `/usr/local/share/indi/alpaca.xml`
 
@@ -124,12 +123,6 @@ These can be changed in the driver's connection settings.
 - Absolute positioning
 - Temperature compensation
 - Position reporting
-
-#### Dome Driver (indi_alpaca_dome)
-- Azimuth control
-- Shutter control
-- Slaving to telescope
-- Park/Home operations
 
 ### Planned Enhancements
 

@@ -21,7 +21,6 @@ DRIVERS=(
     "indi_alpaca_ccd"
     "indi_alpaca_filterwheel"
     "indi_alpaca_focuser"
-    "indi_alpaca_dome"
 )
 
 echo -e "${YELLOW}Checking for built drivers...${NC}"

@@ -40,11 +40,22 @@ bool AlpacaFocuser::initProperties()
 {
     INDI::Focuser::initProperties();
 
+    // Disable automatic connection handling - we manage it ourselves
+    setActiveConnection(nullptr);
+
     // Server address
     IUFillText(&ServerAddressT[0], "HOST", "Host", m_Host.c_str());
     IUFillText(&ServerAddressT[1], "PORT", "Port", std::to_string(m_Port).c_str());
     IUFillTextVector(&ServerAddressTP, ServerAddressT, 2, getDeviceName(), "SERVER_ADDRESS",
                      "Server", CONNECTION_TAB, IP_RW, 60, IPS_IDLE);
+
+    // Load saved configuration
+    defineProperty(&ServerAddressTP);
+    loadConfig(true, "SERVER_ADDRESS");
+    
+    // Update m_Host and m_Port from loaded config
+    m_Host = ServerAddressT[0].text;
+    m_Port = std::stoi(ServerAddressT[1].text);
 
     // Device information
     IUFillText(&DeviceInfoT[0], "DESCRIPTION", "Description", "");
@@ -381,6 +392,7 @@ bool AlpacaFocuser::ISNewText(const char *dev, const char *name, char *texts[], 
             
             ServerAddressTP.s = IPS_OK;
             IDSetText(&ServerAddressTP, nullptr);
+            saveConfig(true, "SERVER_ADDRESS");
             
             LOGF_INFO("Server address updated: %s:%d", m_Host.c_str(), m_Port);
             return true;

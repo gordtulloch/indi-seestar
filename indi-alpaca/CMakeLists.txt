@@ -40,18 +40,12 @@ set(INDI_alpaca_FOCUSER_SOURCES
     alpaca_focuser.cpp
 )
 
-# Source files for Dome driver
-set(INDI_alpaca_DOME_SOURCES
-    alpaca_dome.cpp
-)
-
 # Headers
 set(INDI_alpaca_HEADERS
     alpaca_telescope.h
     alpaca_ccd.h
     alpaca_filterwheel.h
     alpaca_focuser.h
-    alpaca_dome.h
 )
 
 # Build the telescope driver
@@ -91,17 +85,8 @@ target_link_libraries(indi_alpaca_focuser
     Threads::Threads
 )
 
-# Build the Dome driver
-add_executable(indi_alpaca_dome ${INDI_alpaca_DOME_SOURCES})
-
-target_link_libraries(indi_alpaca_dome
-    indidriver
-    nova
-    Threads::Threads
-)
-
 # Installation
-install(TARGETS indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser indi_alpaca_dome RUNTIME DESTINATION bin)
+install(TARGETS indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser RUNTIME DESTINATION bin)
 install(FILES alpaca.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/../share/indi)
 
 # Alpaca tests subdirectory

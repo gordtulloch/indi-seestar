@@ -101,7 +101,7 @@ This installs:
 
 ```bash
 # All drivers together:
-indiserver -v indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser indi_alpaca_dome
+indiserver -v indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser
 
 # Individual drivers:
 indiserver -v indi_alpaca_telescope
