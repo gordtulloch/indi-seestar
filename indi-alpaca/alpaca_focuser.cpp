@@ -40,8 +40,16 @@ bool AlpacaFocuser::initProperties()
 {
     INDI::Focuser::initProperties();
 
-    // Disable automatic connection handling - we manage it ourselves
+    // Disable automatic connection handling - Alpaca is network-only
+    // Explicitly remove all default connection interfaces
     setActiveConnection(nullptr);
+    
+    // Remove any registered connection plugins
+    deleteProperty("CONNECTION_MODE");
+    deleteProperty("DEVICE_PORT");
+    deleteProperty("DEVICE_BAUD_RATE");
+    deleteProperty("DEVICE_AUTO_SEARCH");
+    deleteProperty("CONNECTION");
 
     // Server address
     IUFillText(&ServerAddressT[0], "HOST", "Host", m_Host.c_str());
@@ -63,7 +71,7 @@ bool AlpacaFocuser::initProperties()
     IUFillText(&DeviceInfoT[2], "DRIVERVERSION", "Driver Version", "");
     IUFillText(&DeviceInfoT[3], "INTERFACEVERSION", "Interface Version", "");
     IUFillTextVector(&DeviceInfoTP, DeviceInfoT, 4, getDeviceName(), "DEVICE_INFO",
-                     "Device Info", INFO_TAB, IP_RO, 60, IPS_IDLE);
+                     "Device Info", OPTIONS_TAB, IP_RO, 60, IPS_IDLE);
 
     // Temperature monitoring (read-only)
     IUFillNumber(&TemperatureN[0], "TEMPERATURE", "Temperature (°C)", "%.2f", -50, 100, 0, 0);

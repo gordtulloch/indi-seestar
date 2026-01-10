@@ -52,8 +52,15 @@ bool AlpacaFilterWheel::initProperties()
     loadConfig(true, "SERVER_ADDRESS");
     
     // Update m_Host and m_Port from loaded config
-    m_Host = ServerAddressT[0].text;
-    m_Port = std::stoi(ServerAddressT[1].text);
+    // Check if config was actually loaded (text will have non-default values)
+    if (ServerAddressT[0].text && strlen(ServerAddressT[0].text) > 0)
+    {
+        m_Host = ServerAddressT[0].text;
+    }
+    if (ServerAddressT[1].text && strlen(ServerAddressT[1].text) > 0)
+    {
+        m_Port = std::stoi(ServerAddressT[1].text);
+    }
 
     // Device information
     IUFillText(&DeviceInfoT[0], "DESCRIPTION", "Description", "");

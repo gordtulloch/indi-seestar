@@ -84,6 +84,11 @@ bool alpacaTelescopeDriver::initProperties()
     ServerAddressTP[HOST].fill("HOST", "Host", "alpaca.local");
     ServerAddressTP[PORT].fill("PORT", "Port", "32323");
     ServerAddressTP.fill(getDeviceName(), "SERVER_ADDRESS", "Server", CONNECTION_TAB, IP_RW, 60, IPS_IDLE);
+    
+    // Define property so it can be loaded
+    defineProperty(ServerAddressTP);
+    
+    // Load saved configuration
     ServerAddressTP.load();
     
     // Device info
@@ -91,7 +96,7 @@ bool alpacaTelescopeDriver::initProperties()
     DeviceInfoTP[DRIVER_INFO].fill("DRIVER_INFO", "Driver Info", "");
     DeviceInfoTP[DRIVER_VERSION].fill("DRIVER_VERSION", "Driver Version", "");
     DeviceInfoTP[INTERFACE_VERSION].fill("INTERFACE_VERSION", "Interface Version", "");
-    DeviceInfoTP.fill(getDeviceName(), "DEVICE_INFO", "Device Info", CONNECTION_TAB, IP_RO, 60, IPS_IDLE);
+    DeviceInfoTP.fill(getDeviceName(), "DEVICE_INFO", "Device Info", OPTIONS_TAB, IP_RO, 60, IPS_IDLE);
     
     SetParkDataType(PARK_RA_DEC);
     
@@ -162,9 +167,6 @@ bool alpacaTelescopeDriver::ISNewText(const char *dev, const char *name, char *t
 void alpacaTelescopeDriver::ISGetProperties(const char *dev)
 {
     INDI::Telescope::ISGetProperties(dev);
-    
-    // Always define server address property
-    defineProperty(ServerAddressTP);
 }
 
 bool alpacaTelescopeDriver::ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
@@ -191,8 +193,8 @@ bool alpacaTelescopeDriver::Connect()
     LOGF_INFO("Connecting to alpaca at %s:%d", host.c_str(), port);
     
     httpClient = std::make_unique<httplib::Client>(host.c_str(), port);
-    httpClient->set_connection_timeout(5);
-    httpClient->set_read_timeout(5);
+    httpClient->set_connection_timeout(10);
+    httpClient->set_read_timeout(30);  // Increased timeout for commands that may take time to respond
     
     nlohmann::json response;
     if (!sendAlpacaGET("/connected", response))
@@ -475,6 +477,13 @@ bool alpacaTelescopeDriver::Abort()
 {
     nlohmann::json request, response;
     
+    // Check if we're parking - parking cannot be aborted via AbortSlew
+    if (TrackState == SCOPE_PARKING)
+    {
+        LOG_WARN("Cannot abort parking operation - park must complete");
+        return false;
+    }
+    
     if (!sendAlpacaPUT("/abortslew", request, response))
     {
         LOG_ERROR("Failed to abort");
@@ -498,129 +507,42 @@ bool alpacaTelescopeDriver::Park()
         sendAlpacaPUT("/abortslew", abortReq, abortResp);
     }
     
-    // Get saved park position (RA/Dec)
-    double parkRA = GetAxis1Park();   // RA in hours
-    double parkDec = GetAxis2Park();  // Dec in degrees
+    LOG_INFO("Sending park command to Alpaca device");
     
-    LOGF_INFO("Parking at saved position: RA=%.6f hours, Dec=%.6f degrees", parkRA, parkDec);
-    
-    // Set target coordinates
-    nlohmann::json raRequest;
-    raRequest["TargetRightAscension"] = parkRA;
-    if (!sendAlpacaPUT("/targetrightascension", raRequest, response))
+    // Use Alpaca park command
+    if (!sendAlpacaPUT("/park", request, response))
     {
-        LOG_ERROR("Failed to set park target RA");
+        LOG_ERROR("Failed to send park command to Alpaca device");
         return false;
     }
     
-    nlohmann::json decRequest;
-    decRequest["TargetDeclination"] = parkDec;
-    if (!sendAlpacaPUT("/targetdeclination", decRequest, response))
-    {
-        LOG_ERROR("Failed to set park target Dec");
-        return false;
-    }
-    
-    // Start slew to park position
-    LOG_INFO("Slewing to park position");
-    nlohmann::json emptyRequest;
-    if (!sendAlpacaPUT("/slewtotarget", emptyRequest, response))
-    {
-        LOG_ERROR("Failed to slew to park position");
-        return false;
-    }
-    
-    // Mark as parked (state will be SCOPE_SLEWING until slew completes, then ReadScopeStatus will handle it)
+    // Mark as parked
     isParked = true;
     SetParked(true);
     TrackState = SCOPE_PARKING;
-    LOG_INFO("Parking sequence initiated - slewing to park position");
+    LOG_INFO("Park command sent - telescope parking");
     
     return true;
 }
 
 bool alpacaTelescopeDriver::UnPark()
 {
-    nlohmann::json response;
+    nlohmann::json request, response;
     
-    // Mark as unparked without calling /unpark endpoint (causes issues)
+    LOG_INFO("Sending unpark command to Alpaca device");
+    
+    // Use Alpaca unpark command
+    if (!sendAlpacaPUT("/unpark", request, response))
+    {
+        LOG_ERROR("Failed to send unpark command to Alpaca device");
+        return false;
+    }
+    
+    // Mark as unparked
     isParked = false;
     SetParked(false);
-    LOG_INFO("Unparking telescope - will slew to unpark position");
-    
-    // Unpark position: Alt 45°, Az 180° (telescope pointing south at 45° elevation)
-    double unparkAlt = 45.0;
-    double unparkAz = 180.0;
-    
-    LOG_INFO("Converting unpark position (Alt=45°, Az=180°) to RA/Dec");
-    
-    // Get current site coordinates for conversion
-    double latitude = 0, longitude = 0;
-    if (sendAlpacaGET("/sitelatitude", response) && response.contains("Value"))
-    {
-        latitude = response["Value"].get<double>();
-    }
-    if (sendAlpacaGET("/sitelongitude", response) && response.contains("Value"))
-    {
-        longitude = response["Value"].get<double>();
-    }
-    
-    // Get current sidereal time
-    double siderealTime = 0;
-    if (sendAlpacaGET("/siderealtime", response) && response.contains("Value"))
-    {
-        siderealTime = response["Value"].get<double>();
-    }
-    
-    // Convert Alt/Az to RA/Dec using libnova
-    struct ln_hrz_posn altaz;
-    altaz.alt = unparkAlt;
-    altaz.az = unparkAz;
-    
-    struct ln_lnlat_posn observer;
-    observer.lat = latitude;
-    observer.lng = longitude;
-    
-    // Get current JD for accurate conversion
-    double jd = ln_get_julian_from_sys();
-    
-    struct ln_equ_posn radec;
-    get_equ_from_hrz(&altaz, &observer, jd, &radec);
-    
-    // Convert to hours for RA
-    double unparkRA = radec.ra / 15.0;
-    double unparkDec = radec.dec;
-    
-    LOGF_INFO("Unpark position in RA/Dec: RA=%.6f hours, Dec=%.6f degrees", unparkRA, unparkDec);
-    
-    // Set target coordinates
-    nlohmann::json raRequest;
-    raRequest["TargetRightAscension"] = unparkRA;
-    if (!sendAlpacaPUT("/targetrightascension", raRequest, response))
-    {
-        LOG_ERROR("Failed to set unpark target RA");
-        return false;
-    }
-    
-    nlohmann::json decRequest;
-    decRequest["TargetDeclination"] = unparkDec;
-    if (!sendAlpacaPUT("/targetdeclination", decRequest, response))
-    {
-        LOG_ERROR("Failed to set unpark target Dec");
-        return false;
-    }
-    
-    // Start slew to unpark position
-    LOG_INFO("Slewing to unpark position");
-    nlohmann::json emptyRequest;
-    if (!sendAlpacaPUT("/slewtotarget", emptyRequest, response))
-    {
-        LOG_ERROR("Failed to slew to unpark position");
-        return false;
-    }
-    
-    TrackState = SCOPE_SLEWING;
-    LOG_INFO("Unparking sequence initiated - slewing to unpark position");
+    TrackState = SCOPE_IDLE;
+    LOG_INFO("Unpark command sent - telescope unparked");
     
     return true;
 }

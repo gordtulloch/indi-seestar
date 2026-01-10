@@ -58,7 +58,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}Available driver options:${NC}"
-echo "  1) All drivers (telescope, ccd, filterwheel, focuser, dome)"
+echo "  1) All drivers (telescope, ccd, filterwheel, focuser)"
 echo "  2) Telescope only"
 echo "  3) CCD only"
 echo "  4) Telescope + CCD + Focuser"
@@ -74,7 +74,7 @@ VERBOSE=""
 
 case $option in
     1)
-        DRIVER_LIST="$BUILD_DIR/indi_alpaca_telescope $BUILD_DIR/indi_alpaca_ccd $BUILD_DIR/indi_alpaca_filterwheel $BUILD_DIR/indi_alpaca_focuser $BUILD_DIR/indi_alpaca_dome"
+        DRIVER_LIST="$BUILD_DIR/indi_alpaca_telescope $BUILD_DIR/indi_alpaca_ccd $BUILD_DIR/indi_alpaca_filterwheel $BUILD_DIR/indi_alpaca_focuser"
         echo -e "${GREEN}Starting all Alpaca drivers...${NC}"
         ;;
     2)
@@ -96,18 +96,16 @@ case $option in
         read -p "  CCD? [y/n]: " sel_ccd
         read -p "  FilterWheel? [y/n]: " sel_fw
         read -p "  Focuser? [y/n]: " sel_foc
-        read -p "  Dome? [y/n]: " sel_dome
         
         [ "$sel_tele" = "y" ] && DRIVER_LIST="$DRIVER_LIST $BUILD_DIR/indi_alpaca_telescope"
         [ "$sel_ccd" = "y" ] && DRIVER_LIST="$DRIVER_LIST $BUILD_DIR/indi_alpaca_ccd"
         [ "$sel_fw" = "y" ] && DRIVER_LIST="$DRIVER_LIST $BUILD_DIR/indi_alpaca_filterwheel"
         [ "$sel_foc" = "y" ] && DRIVER_LIST="$DRIVER_LIST $BUILD_DIR/indi_alpaca_focuser"
-        [ "$sel_dome" = "y" ] && DRIVER_LIST="$DRIVER_LIST $BUILD_DIR/indi_alpaca_dome"
         
         echo -e "${GREEN}Starting selected drivers...${NC}"
         ;;
     6)
-        DRIVER_LIST="$BUILD_DIR/indi_alpaca_telescope $BUILD_DIR/indi_alpaca_ccd $BUILD_DIR/indi_alpaca_filterwheel $BUILD_DIR/indi_alpaca_focuser $BUILD_DIR/indi_alpaca_dome"
+        DRIVER_LIST="$BUILD_DIR/indi_alpaca_telescope $BUILD_DIR/indi_alpaca_ccd $BUILD_DIR/indi_alpaca_filterwheel $BUILD_DIR/indi_alpaca_focuser"
         VERBOSE="-v"
         echo -e "${GREEN}Starting all drivers in verbose mode...${NC}"
         ;;

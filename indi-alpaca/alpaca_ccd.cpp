@@ -96,7 +96,7 @@ bool AlpacaCCD::initProperties()
     DeviceInfoTP[1].fill("DRIVER_INFO", "Driver Info", "");
     DeviceInfoTP[2].fill("DRIVER_VERSION", "Driver Version", "");
     DeviceInfoTP[3].fill("NAME", "Name", "");
-    DeviceInfoTP.fill(getDeviceName(), "DEVICE_INFO", "Device Info", CONNECTION_TAB, IP_RO, 60, IPS_IDLE);
+    DeviceInfoTP.fill(getDeviceName(), "DEVICE_INFO", "Device Info", OPTIONS_TAB, IP_RO, 60, IPS_IDLE);
 
     // Camera State property
     CameraStateTP[0].fill("STATE", "State", "Idle");
