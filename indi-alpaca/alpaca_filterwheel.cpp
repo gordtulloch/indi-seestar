@@ -18,23 +18,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_alpaca_filterwheel.h"
+#include "alpaca_filterwheel.h"
 #include <cstring>
 #include <memory>
 
-static std::unique_ptr<alpacaFilterWheel> alpacaFilterWheel(new alpacaFilterWheel());
+static std::unique_ptr<AlpacaFilterWheel> alpacaFilterWheel(new AlpacaFilterWheel());
 
-alpacaFilterWheel::alpacaFilterWheel()
+AlpacaFilterWheel::AlpacaFilterWheel()
 {
     setVersion(1, 0);
 }
 
-const char *alpacaFilterWheel::getDefaultName()
+const char *AlpacaFilterWheel::getDefaultName()
 {
     return "alpaca FilterWheel";
 }
 
-bool alpacaFilterWheel::initProperties()
+bool AlpacaFilterWheel::initProperties()
 {
     INDI::FilterWheel::initProperties();
 
@@ -64,7 +64,7 @@ bool alpacaFilterWheel::initProperties()
     return true;
 }
 
-bool alpacaFilterWheel::updateProperties()
+bool AlpacaFilterWheel::updateProperties()
 {
     INDI::FilterWheel::updateProperties();
 
@@ -82,7 +82,7 @@ bool alpacaFilterWheel::updateProperties()
     return true;
 }
 
-bool alpacaFilterWheel::Connect()
+bool AlpacaFilterWheel::Connect()
 {
     LOG_INFO("Connecting to alpaca FilterWheel...");
 
@@ -152,7 +152,7 @@ bool alpacaFilterWheel::Connect()
     return true;
 }
 
-bool alpacaFilterWheel::Disconnect()
+bool AlpacaFilterWheel::Disconnect()
 {
     LOG_INFO("Disconnecting alpaca FilterWheel...");
 
@@ -166,7 +166,7 @@ bool alpacaFilterWheel::Disconnect()
     return true;
 }
 
-bool alpacaFilterWheel::setupFilterWheel()
+bool AlpacaFilterWheel::setupFilterWheel()
 {
     nlohmann::json response;
 
@@ -221,7 +221,7 @@ bool alpacaFilterWheel::setupFilterWheel()
     return true;
 }
 
-bool alpacaFilterWheel::SelectFilter(int position)
+bool AlpacaFilterWheel::SelectFilter(int position)
 {
     // Convert from INDI 1-based to ASCOM 0-based
     int targetPos = position - 1;
@@ -263,7 +263,7 @@ bool alpacaFilterWheel::SelectFilter(int position)
     return true;
 }
 
-int alpacaFilterWheel::QueryFilter()
+int AlpacaFilterWheel::QueryFilter()
 {
     nlohmann::json response;
     
@@ -282,7 +282,7 @@ int alpacaFilterWheel::QueryFilter()
     return -1;
 }
 
-bool alpacaFilterWheel::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
+bool AlpacaFilterWheel::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
     if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
     {
@@ -305,7 +305,7 @@ bool alpacaFilterWheel::ISNewText(const char *dev, const char *name, char *texts
     return INDI::FilterWheel::ISNewText(dev, name, texts, names, n);
 }
 
-bool alpacaFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
+bool AlpacaFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;
@@ -354,7 +354,7 @@ bool alpacaFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::jso
     }
 }
 
-bool alpacaFilterWheel::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
+bool AlpacaFilterWheel::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;

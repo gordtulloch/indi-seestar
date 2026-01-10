@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <driversList>
     <devGroup group="Telescopes">
-        <device label="Alpaca Telescope" manufacturer="ASCOM">
+        <device label="Alpaca Telescope" manufacturer="Alpaca">
             <driver name="Alpaca Telescope">indi_alpaca_telescope</driver>
             <version>1.0</version>
         </device>
     </devGroup>
     <devGroup group="CCDs">
-        <device label="Alpaca CCD" manufacturer="ASCOM">
+        <device label="Alpaca CCD" manufacturer="Alpaca">
             <driver name="Alpaca CCD">indi_alpaca_ccd</driver>
-            <version>1.0</version>
+            <version>1.1</version>
         </device>
     </devGroup>
     <devGroup group="Filter Wheels">
-        <device label="Alpaca FilterWheel" manufacturer="ASCOM">
+        <device label="Alpaca FilterWheel" manufacturer="Alpaca">
             <driver name="Alpaca FilterWheel">indi_alpaca_filterwheel</driver>
             <version>1.0</version>
         </device>
     </devGroup>
     <devGroup group="Focusers">
-        <device label="Alpaca Focuser" manufacturer="ASCOM">
+        <device label="Alpaca Focuser" manufacturer="Alpaca">
             <driver name="Alpaca Focuser">indi_alpaca_focuser</driver>
             <version>1.0</version>
         </device>
     </devGroup>
     <devGroup group="Domes">
-        <device label="Alpaca Dome" manufacturer="ASCOM">
+        <device label="Alpaca Dome" manufacturer="Alpaca">
             <driver name="Alpaca Dome">indi_alpaca_dome</driver>
-            <version>1.0</version>
+            <version>1.1</version>
         </device>
     </devGroup>
 </driversList>

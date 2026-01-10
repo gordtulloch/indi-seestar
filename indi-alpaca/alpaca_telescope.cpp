@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_alpaca_telescope.h"
+#include "alpaca_telescope.h"
 #include <memory>
 #include <cstring>
 #include <cmath>
@@ -35,7 +35,7 @@ std::unique_ptr<alpacaTelescopeDriver> alpaca(new alpacaTelescopeDriver());
 #define GUIDE_WEST  0
 #define GUIDE_EAST  1
 
-alpacaTelescopeDriver::alpacaTelescopeDriver(): GI(this)
+alpacaTelescopeDriver::alpacaTelescopeDriver()
 {
     DBG_SCOPE = static_cast<uint32_t>(INDI::Logger::getInstance().addDebugLevel("Scope Verbose", "SCOPE"));
 
@@ -63,12 +63,6 @@ bool alpacaTelescopeDriver::initProperties()
     
     // Override the mount type property to make it writable in the INDI client
     MountTypeSP.fill(getDeviceName(), "TELESCOPE_MOUNT_TYPE", "Mount Type", MOTION_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
-    
-    /* How fast do we guide compared to sidereal rate */
-    GuideRateNP[RA_AXIS].fill("GUIDE_RATE_WE", "W/E Rate", "%g", 0, 1, 0.1, 0.5);
-    GuideRateNP[DEC_AXIS].fill("GUIDE_RATE_NS", "N/S Rate", "%g", 0, 1, 0.1, 0.5);
-    GuideRateNP.fill(getDeviceName(), "GUIDE_RATE", "Guiding Rate", MOTION_TAB, IP_RW, 0,
-                     IPS_IDLE);
 
     SlewRateSP[SLEW_GUIDE].fill("SLEW_GUIDE", "Guide", ISS_OFF);
     SlewRateSP[SLEW_CENTERING].fill("SLEW_CENTERING", "Centering", ISS_OFF);
@@ -104,11 +98,8 @@ bool alpacaTelescopeDriver::initProperties()
     // RA is a rotating frame, while HA or Alt/Az is not
     SetParkDataType(PARK_HA_DEC);
 
-    GI::initProperties(MOTION_TAB);
-
     /* Add debug controls so we may debug driver if necessary */
     addDebugControl();
-    setDriverInterface(getDriverInterface() | GUIDER_INTERFACE);
     setDefaultPollingPeriod(250);
 
     return true;
@@ -116,38 +107,22 @@ bool alpacaTelescopeDriver::initProperties()
 
 bool alpacaTelescopeDriver::updateProperties()
 {
-    updateMountAndPierSide();
-    
     INDI::Telescope::updateProperties();
         
     if (isConnected())
     {
         defineProperty(DeviceInfoTP);
-        defineProperty(GuideRateNP);
-        GuideRateNP.load();
 
         if (InitPark())
         {
-            if (isParked())
-            {
-                // at this point there is a valid ParkData.xml available
-                alignment.latitude = Angle(LocationNP[LOCATION_LATITUDE].getValue());
-                alignment.longitude = Angle(LocationNP[LOCATION_LONGITUDE].getValue());
-
-                // RA-parkposition in Ha full circle!!
-                m_currentRA = (alignment.lst() - Angle(ParkPositionNP[AXIS_RA].getValue(), Angle::ANGLE_UNITS::HOURS)).Hours();
-                m_currentDEC = ParkPositionNP[AXIS_DE].getValue();
-                Sync(m_currentRA, m_currentDEC);
-                m_currentAz = 180 + axisPrimary.position.Degrees(); // ALTAZ-Primary to Azm
-                m_currentAlt = axisSecondary.position.Degrees();
-            }
-            // If loading parking data is successful, we just set the default parking values.
+            // Load park data if available
+            m_currentRA = ParkPositionNP[AXIS_RA].getValue();
+            m_currentDEC = ParkPositionNP[AXIS_DE].getValue();
             SetAxis1ParkDefault(-6.);
             SetAxis2ParkDefault(0.);
         }
         else
         {
-            // Otherwise, we set all parking data to default in case no parking data is found.
             SetAxis1Park(-6.);
             SetAxis2Park(0.);
             SetAxis1ParkDefault(-6.);
@@ -159,10 +134,7 @@ bool alpacaTelescopeDriver::updateProperties()
     else
     {
         deleteProperty(DeviceInfoTP);
-        deleteProperty(GuideRateNP);
     }
-
-    GI::updateProperties();
 
     return true;
 }
@@ -181,6 +153,21 @@ bool alpacaTelescopeDriver::ISNewText(const char *dev, const char *name, char *t
     }
     
     return INDI::Telescope::ISNewText(dev, name, texts, names, n);
+}
+
+void alpacaTelescopeDriver::ISGetProperties(const char *dev)
+{
+    INDI::Telescope::ISGetProperties(dev);
+}
+
+bool alpacaTelescopeDriver::ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
+{
+    return INDI::Telescope::ISNewSwitch(dev, name, states, names, n);
+}
+
+bool alpacaTelescopeDriver::ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n)
+{
+    return INDI::Telescope::ISNewNumber(dev, name, values, names, n);
 }
 
 bool alpacaTelescopeDriver::Connect()
@@ -307,16 +294,6 @@ bool alpacaTelescopeDriver::ReadScopeStatus()
 {
     nlohmann::json response;
     
-    if (m_MountType == Alignment::MOUNT_TYPE::ALTAZ && TrackState == SCOPE_TRACKING)
-        {
-        double sinAz = std::sin(DEG_TO_RAD(m_currentAz));
-        double cosAz = std::cos(DEG_TO_RAD(m_currentAz));
-        double sinAlt = std::sin(DEG_TO_RAD(m_currentAlt));
-        double cosAlt = std::cos(DEG_TO_RAD(m_currentAlt));
-        SetTrackRate((m_sinLat - ((cosAz * sinAlt * m_cosLat) / cosAlt)) * TRACKRATE_SIDEREAL,
-                    m_cosLat * sinAz * TRACKRATE_SIDEREAL);
-        }
-
     // Get RA/Dec
     double newRA = m_currentRA, newDec = m_currentDEC;
     
@@ -347,7 +324,7 @@ bool alpacaTelescopeDriver::ReadScopeStatus()
     // Update current coordinates and always call NewRaDec
     if (raUpdated && decUpdated)
     {
-        bool coordsChanged = (std::abs(newRA - currentRA) > 0.0001 || std::abs(newDec - currentDec) > 0.0001);
+        bool coordsChanged = (std::abs(newRA - m_currentRA) > 0.0001 || std::abs(newDec - m_currentDEC) > 0.0001);
         
         if (coordsChanged)
         {
@@ -922,17 +899,7 @@ bool alpacaTelescopeDriver::sendAlpacaPUT(const std::string& endpoint, const nlo
 
 void ISGetProperties(const char *dev)
 {
-    /* First we let our parent populate */
     alpaca->ISGetProperties(dev);
-
-    // Load mount type settings
-    mountTypeSP.load();
-
-    double Latitude = LocationNP[LOCATION_LATITUDE].getValue();
-    m_sinLat = std::sin(Latitude * 0.0174533);
-    m_cosLat = std::cos(Latitude * 0.0174533);
-    m_currentAz = 180 + axisPrimary.position.Degrees(); // Primary to Azm
-    m_currentAlt = axisSecondary.position.Degrees();
 }
 
 void ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)

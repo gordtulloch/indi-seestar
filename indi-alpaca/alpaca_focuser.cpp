@@ -18,25 +18,25 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_alpaca_focuser.h"
+#include "alpaca_focuser.h"
 #include <cstring>
 #include <memory>
 #include <cmath>
 
-static std::unique_ptr<alpacaFocuser> alpacaFocuser(new alpacaFocuser());
+static std::unique_ptr<AlpacaFocuser> alpacaFocuser(new AlpacaFocuser());
 
-alpacaFocuser::alpacaFocuser()
+AlpacaFocuser::AlpacaFocuser()
 {
     setVersion(1, 0);
     FI::SetCapability(FOCUSER_CAN_ABS_MOVE | FOCUSER_CAN_ABORT);
 }
 
-const char *alpacaFocuser::getDefaultName()
+const char *AlpacaFocuser::getDefaultName()
 {
     return "alpaca Focuser";
 }
 
-bool alpacaFocuser::initProperties()
+bool AlpacaFocuser::initProperties()
 {
     INDI::Focuser::initProperties();
 
@@ -65,7 +65,7 @@ bool alpacaFocuser::initProperties()
     return true;
 }
 
-bool alpacaFocuser::updateProperties()
+bool AlpacaFocuser::updateProperties()
 {
     INDI::Focuser::updateProperties();
 
@@ -83,7 +83,7 @@ bool alpacaFocuser::updateProperties()
     return true;
 }
 
-bool alpacaFocuser::Connect()
+bool AlpacaFocuser::Connect()
 {
     LOG_INFO("Connecting to alpaca Focuser...");
 
@@ -154,7 +154,7 @@ bool alpacaFocuser::Connect()
     return true;
 }
 
-bool alpacaFocuser::Disconnect()
+bool AlpacaFocuser::Disconnect()
 {
     LOG_INFO("Disconnecting alpaca Focuser...");
 
@@ -168,7 +168,7 @@ bool alpacaFocuser::Disconnect()
     return true;
 }
 
-bool alpacaFocuser::setupFocuser()
+bool AlpacaFocuser::setupFocuser()
 {
     nlohmann::json response;
 
@@ -219,7 +219,7 @@ bool alpacaFocuser::setupFocuser()
     return true;
 }
 
-IPState alpacaFocuser::MoveAbsFocuser(uint32_t targetTicks)
+IPState AlpacaFocuser::MoveAbsFocuser(uint32_t targetTicks)
 {
     // Validate range
     if (targetTicks > FocusMaxPosNP[0].getValue())
@@ -259,7 +259,7 @@ IPState alpacaFocuser::MoveAbsFocuser(uint32_t targetTicks)
     return IPS_BUSY;
 }
 
-bool alpacaFocuser::AbortFocuser()
+bool AlpacaFocuser::AbortFocuser()
 {
     LOG_INFO("Aborting focuser movement");
 
@@ -279,7 +279,7 @@ bool alpacaFocuser::AbortFocuser()
     return true;
 }
 
-void alpacaFocuser::TimerHit()
+void AlpacaFocuser::TimerHit()
 {
     if (!isConnected())
         return;
@@ -333,7 +333,7 @@ void alpacaFocuser::TimerHit()
     SetTimer(getCurrentPollingPeriod());
 }
 
-bool alpacaFocuser::isMoving()
+bool AlpacaFocuser::isMoving()
 {
     nlohmann::json response;
     
@@ -350,7 +350,7 @@ bool alpacaFocuser::isMoving()
     return false;
 }
 
-int alpacaFocuser::getPosition()
+int AlpacaFocuser::getPosition()
 {
     nlohmann::json response;
     
@@ -367,7 +367,7 @@ int alpacaFocuser::getPosition()
     return -1;
 }
 
-bool alpacaFocuser::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
+bool AlpacaFocuser::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
     if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
     {
@@ -390,7 +390,7 @@ bool alpacaFocuser::ISNewText(const char *dev, const char *name, char *texts[], 
     return INDI::Focuser::ISNewText(dev, name, texts, names, n);
 }
 
-bool alpacaFocuser::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
+bool AlpacaFocuser::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;
@@ -439,7 +439,7 @@ bool alpacaFocuser::sendAlpacaGET(const std::string &endpoint, nlohmann::json &r
     }
 }
 
-bool alpacaFocuser::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
+bool AlpacaFocuser::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;

@@ -33,11 +33,11 @@
 #include <indijson.hpp>
 #endif
 
-class alpacaFocuser : public INDI::Focuser
+class AlpacaFocuser : public INDI::Focuser
 {
 public:
-    alpacaFocuser();
-    virtual ~alpacaFocuser() = default;
+    AlpacaFocuser();
+    virtual ~AlpacaFocuser() = default;
 
     virtual const char *getDefaultName() override;
     virtual bool initProperties() override;

@@ -23,7 +23,7 @@
   file called LICENSE.
 *******************************************************************************/
 
-#include "indi_alpaca_ccd.h"
+#include "alpaca_ccd.h"
 
 #include "indicom.h"
 #include <httplib.h>

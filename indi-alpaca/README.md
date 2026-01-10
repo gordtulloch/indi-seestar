@@ -50,7 +50,7 @@ Binaries installed to: `/usr/local/bin/`
 - `indi_alpaca_focuser`
 - `indi_alpaca_dome`
 
-XML config installed to: `/usr/local/share/indi/indi_alpaca.xml`
+XML config installed to: `/usr/local/share/indi/alpaca.xml`
 
 ## Testing the Driver
 

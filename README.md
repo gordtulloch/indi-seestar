@@ -198,13 +198,13 @@ Contributions welcome! This project is in active development.
 ```
 indi-alpaca/
 ├── indi-alpaca/           # Driver source code
-│   ├── indi_alpaca_telescope.cpp/.h    # Telescope driver
-│   ├── indi_alpaca_ccd.cpp/.h          # CCD driver
-│   ├── indi_alpaca_filterwheel.cpp/.h  # FilterWheel driver
-│   ├── indi_alpaca_focuser.cpp/.h      # Focuser driver
-│   ├── indi_alpaca_dome.cpp/.h         # Dome driver
-│   ├── indi_alpaca.xml                 # INDI device registration
-│   └── CMakeLists.txt                   # Build configuration
+│   ├── alpaca_telescope.cpp/.h         # Telescope driver
+│   ├── alpaca_ccd.cpp/.h               # CCD driver
+│   ├── alpaca_filterwheel.cpp/.h       # FilterWheel driver
+│   ├── alpaca_focuser.cpp/.h           # Focuser driver
+│   ├── alpaca_dome.cpp/.h              # Dome driver
+│   ├── indi-alpaca.xml                 # INDI device registration
+│   └── CMakeLists.txt                  # Build configuration
 ├── alpaca-tests/           # API validation test programs
 ├── docs/                   # Detailed documentation
 └── README.md              # This file

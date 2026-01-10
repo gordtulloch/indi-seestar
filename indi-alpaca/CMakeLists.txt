@@ -22,36 +22,36 @@ include_directories(
 
 # Source files for telescope driver
 set(INDI_alpaca_TELESCOPE_SOURCES
-    indi_alpaca_telescope.cpp
+    alpaca_telescope.cpp
 )
 
 # Source files for CCD driver
 set(INDI_alpaca_CCD_SOURCES
-    indi_alpaca_ccd.cpp
+    alpaca_ccd.cpp
 )
 
 # Source files for FilterWheel driver
 set(INDI_alpaca_FILTERWHEEL_SOURCES
-    indi_alpaca_filterwheel.cpp
+    alpaca_filterwheel.cpp
 )
 
 # Source files for Focuser driver
 set(INDI_alpaca_FOCUSER_SOURCES
-    indi_alpaca_focuser.cpp
+    alpaca_focuser.cpp
 )
 
 # Source files for Dome driver
 set(INDI_alpaca_DOME_SOURCES
-    indi_alpaca_dome.cpp
+    alpaca_dome.cpp
 )
 
 # Headers
 set(INDI_alpaca_HEADERS
-    indi_alpaca_telescope.h
-    indi_alpaca_ccd.h
-    indi_alpaca_filterwheel.h
-    indi_alpaca_focuser.h
-    indi_alpaca_dome.h
+    alpaca_telescope.h
+    alpaca_ccd.h
+    alpaca_filterwheel.h
+    alpaca_focuser.h
+    alpaca_dome.h
 )
 
 # Build the telescope driver
@@ -102,7 +102,7 @@ target_link_libraries(indi_alpaca_dome
 
 # Installation
 install(TARGETS indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser indi_alpaca_dome RUNTIME DESTINATION bin)
-install(FILES indi_alpaca.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/../share/indi)
+install(FILES alpaca.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/../share/indi)
 
 # Alpaca tests subdirectory
 if(BUILD_TESTS)

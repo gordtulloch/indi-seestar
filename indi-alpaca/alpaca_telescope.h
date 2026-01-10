@@ -48,19 +48,10 @@ public:
     virtual bool ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n) override;
 
 protected:
-    // Slew Rate
-    virtual IPState GuideNorth(uint32_t ms) override;
-    virtual IPState GuideSouth(uint32_t ms) override;
-    virtual IPState GuideEast(uint32_t ms) override;
-    virtual IPState GuideWest(uint32_t ms) override;
-
     // Connection
-    virtual bool Connect() override;
-    virtual bool Disconnect() override;
     virtual bool Handshake() override;
 
     // Telescope Operations
-    virtual bool ReadScopeStatus() override;
     virtual bool Goto(double ra, double dec) override;
     virtual bool Sync(double ra, double dec) override;
     virtual bool Abort() override;
@@ -73,14 +64,10 @@ protected:
     // Tracking
     virtual bool SetTrackEnabled(bool enabled) override;
     virtual bool SetTrackMode(uint8_t mode) override;
-    virtual bool SetTrackRate(double raRate, double deRate) override;
 
     // Motion Control
     virtual bool MoveNS(INDI_DIR_NS dir, TelescopeMotionCommand command) override;
     virtual bool MoveWE(INDI_DIR_WE dir, TelescopeMotionCommand command) override;
-    
-    // Home
-    virtual IPState ExecuteHomeAction(TelescopeHomeAction action) override;
 
     // Save configuration
     virtual bool saveConfigItems(FILE *fp) override;

@@ -33,11 +33,11 @@
 #include <indijson.hpp>
 #endif
 
-class alpacaFilterWheel : public INDI::FilterWheel
+class AlpacaFilterWheel : public INDI::FilterWheel
 {
 public:
-    alpacaFilterWheel();
-    virtual ~alpacaFilterWheel() = default;
+    AlpacaFilterWheel();
+    virtual ~AlpacaFilterWheel() = default;
 
     virtual const char *getDefaultName() override;
     virtual bool initProperties() override;
