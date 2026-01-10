@@ -1,9 +1,10 @@
 # ASCOM Alpaca API Reference for Copilot
 
-This file contains reference information about the ASCOM Alpaca Device API to help with development of the INDI alpaca driver.
+This file contains reference information about the ASCOM Alpaca Device API to help with development of the generic INDI Alpaca drivers.
 
-## alpaca Alpaca Firmware Version
-**Current Version**: v1.1.2-1
+## ASCOM Alpaca Protocol
+**Protocol Version**: v1
+**Reference Implementation Tested**: v1.1.2-1 (Seestar S50)
 
 ## Official Documentation
 - Main API: https://ascom-standards.org/api/#/ASCOM%20Methods%20Common%20To%20All%20Devices
@@ -126,10 +127,12 @@ Separate from the Device API, the Management API provides:
 
 ## Common alpaca Configuration
 
+## Common Alpaca Configuration
+
 Based on testing:
-- **Alpaca Port**: 32323 (not the standard 11111)
-- **Device Type**: telescope
-- **Device Number**: 0
+- **Standard Alpaca Port**: 32323 (some devices may use 11111)
+- **Device Types**: telescope, camera, focuser, filterwheel, dome, etc.
+- **Device Number**: Usually 0 (check device documentation)
 - **Connection Required**: Must call `/connected` with `Connected=true` before other operations
 
 ## Example Workflow
@@ -153,9 +156,12 @@ Based on testing:
 
 4. **Query Status**:
    ```
-## alpaca Alpaca v1.1.2-1 Tested Features
+   GET http://alpaca.local:32323/api/v1/telescope/0/slewing
+   ```
 
-The alpaca v1.1.2-1 firmware has excellent ASCOM Alpaca support. See the comprehensive test results table in [README.md](../README.md#ascom-alpaca-api-support).
+## Seestar S50 Alpaca v1.1.2-1 Tested Features
+
+The Seestar S50 v1.1.2-1 firmware has excellent ASCOM Alpaca support and served as the reference implementation. See the comprehensive test results table in [README.md](../README.md#ascom-alpaca-api-support).
 
 ### Key Findings from Testing
 
@@ -181,14 +187,13 @@ The alpaca v1.1.2-1 firmware has excellent ASCOM Alpaca support. See the compreh
 
 For detailed test status of all methods, see the table in README.md.
 
-## Notes for alpaca Development
+## Notes for Generic Alpaca Driver Development
 
-- The alpaca Alpaca v1.1.2-1 implements limited ASCOM Alpaca API
+- These are generic drivers for any ASCOM Alpaca-compatible device
 - Always check `ErrorNumber` in responses - Error 0 means success
 - Error codes: 1024 = not implemented, 1036 = action not implemented, 1279 = operational failure
-- Park/Unpark commands require native API (different port/protocol)
-- Native API commands (documented in Postman collection) are NOT accessible via Alpaca endpoint
-- Telescope must be initialized (via app) before Alpaca commands work properly
-- Use the `/action` endpoint with device-specific action names
-- Always check `ErrorNumber` in responses - Error 1036 means action not implemented
-- The alpaca may have custom actions beyond standard Alpaca - these need to be discovered through documentation or experimentation
+- Device capabilities vary by manufacturer and firmware
+- Some devices may have custom actions beyond standard Alpaca methods
+- Always check device documentation for specific capabilities
+- Use the `/action` endpoint for device-specific action names
+- Device must be initialized before Alpaca commands work properly

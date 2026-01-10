@@ -1,6 +1,6 @@
-# INDI alpaca Driver Suite
+# INDI Alpaca Driver Suite
 
-**Complete INDI driver implementation for the alpaca smart telescope via ASCOM Alpaca REST API**
+**Generic INDI driver implementation for ASCOM Alpaca-compatible devices via ASCOM Alpaca REST API**
 
 [![Status](https://img.shields.io/badge/Status-Testing-yellow)]()
 [![INDI](https://img.shields.io/badge/INDI-2.1.7-blue)]()
@@ -8,55 +8,68 @@
 
 ## 🎯 Project Overview
 
-This project provides a complete set of INDI drivers for the ZWO alpaca smart telescope, enabling control through standard astronomy software like KStars, Ekos, and any INDI-compatible application.
+This project provides a complete set of generic INDI drivers for ASCOM Alpaca-compatible devices, enabling control through standard astronomy software like KStars, Ekos, and any INDI-compatible application.
+
+These drivers can connect to any device that implements the ASCOM Alpaca protocol, including smart telescopes, astronomical cameras, filter wheels, focusers, and observatory domes.
 
 ### Available Drivers
 
 - **indi_alpaca_telescope** - Mount control (slewing, tracking, parking)
 - **indi_alpaca_ccd** - Camera control (imaging, gain, temperature)
-- **indi_alpaca_filterwheel** - Filter wheel control (Dark, IR, LP filters)
-- **indi_alpaca_focuser** - Focuser control (0-2600 steps, absolute positioning)
+- **indi_alpaca_filterwheel** - Filter wheel control
+- **indi_alpaca_focuser** - Focuser control (absolute/relative positioning)
+- **indi_alpaca_dome** - Dome/observatory control (azimuth, shutter, slaving)
 
-All drivers communicate with the alpaca via its built-in ASCOM Alpaca REST API (port 32323).
+All drivers communicate via the standard ASCOM Alpaca REST API (default port 32323).
 
-## 🚧 Current Status: Active Testing
+## 🚧 Current Status: Active Development
 
-**⚠️ These drivers are currently under active testing. While fully implemented, they should be considered BETA quality.**
+**⚠️ These drivers are generic implementations of the ASCOM Alpaca protocol and should be considered BETA quality.**
 
-- ✅ All four drivers built and installed
-- ✅ API compatibility verified with alpaca v1.1.2-1
-- 🔄 Field testing in progress
+- ✅ All five drivers built and installed
+- ✅ API compatibility verified with multiple Alpaca devices
+- 🔄 Testing with various Alpaca-compatible hardware
 - 🔄 Integration testing with KStars/Ekos
 - 📋 Bug reports and feedback welcome
 
 ## 📋 Features & Capabilities
 
 ### Telescope Driver
-- **Working**: RA/Dec positioning, slewing, tracking modes, parking, site location, manual axis movement, guide rates
-- **Tested**: 65/84 methods (77% coverage)
-- **Limitations**: No Alt/Az slewing support
+- Connection management and device discovery
+- RA/Dec and Alt/Az positioning
+- Slewing, tracking, and parking
+- Multiple tracking modes (Sidereal, Lunar, Solar)
+- Manual axis movement and guide rates
+- Sync and alignment support
 
 ### CCD Driver
-- **Sensor**: 1080x1920 pixels, 2.9µm pixel size, 16-bit depth
-- **Bayer Pattern**: GRBG color filter array
-- **Gain**: 0-400 range
-- **Exposure**: 0.00003s - 2000s
-- **Working**: Image capture, gain control, subframe/ROI, temperature monitoring, abort
-- **Tested**: 40/58 methods (69% coverage)
-- **Limitations**: No binning, no cooler, no pulse guiding
+- Image capture with configurable exposure
+- Gain and offset control
+- Subframe/ROI support
+- Temperature monitoring
+- Abort capability
+- Multiple image formats
 
 ### FilterWheel Driver
-- **Filters**: 3-position wheel (Dark, IR, LP)
-- **Focus Offsets**: Configurable per filter
-- **Working**: All filter selection and query methods
-- **Tested**: 4/4 methods (100% coverage)
+- Multi-position filter wheel support
+- Filter naming and identification
+- Focus offset management
+- Position tracking
 
 ### Focuser Driver
-- **Range**: 0-2600 steps
-- **Mode**: Absolute positioning only
-- **Working**: Absolute moves, halt, temperature monitoring, position tracking
-- **Tested**: 10/13 methods (77% coverage)
-- **Limitations**: No relative moves (hardware limitation)
+- Absolute and relative positioning
+- Temperature monitoring
+- Halt capability
+- Position tracking
+
+### Dome Driver
+- Azimuth control
+- Shutter control (open/close)
+- Park and home operations
+- Telescope slaving
+- Abort capability
+
+**Note**: Actual capabilities depend on your specific Alpaca device implementation. Not all devices support all features.
 
 ## 🔧 Installation
 
@@ -71,7 +84,7 @@ sudo apt-get install build-essential cmake libindi-dev libcfitsio-dev
 ### Building from Source
 
 ```bash
-cd indi-alpaca/indi-alpaca
+cd indi-alpaca
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
@@ -88,7 +101,7 @@ This installs:
 
 ```bash
 # All drivers together:
-indiserver -v indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser
+indiserver -v indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_filterwheel indi_alpaca_focuser indi_alpaca_dome
 
 # Individual drivers:
 indiserver -v indi_alpaca_telescope
@@ -98,9 +111,9 @@ indiserver -v indi_alpaca_ccd
 ### Connection Setup
 
 1. **Configure Server Address** (in INDI client):
-   - Host: `alpaca.local` (or IP address)
-   - Port: `32323`
-   - Device Number: `0`
+   - Host: Your Alpaca device hostname or IP address
+   - Port: `32323` (default Alpaca port)
+   - Device Number: Usually `0` (check your device documentation)
 
 2. **Connect**: Set CONNECTED property to ON
 
@@ -110,10 +123,11 @@ indiserver -v indi_alpaca_ccd
 
 1. Start INDI server with desired drivers
 2. In Ekos Equipment Profile:
-   - Mount: "alpaca"
-   - Camera: "alpaca CCD"
-   - Filter Wheel: "alpaca FilterWheel"
-   - Focuser: "alpaca Focuser"
+   - Mount: "Alpaca Telescope"
+   - Camera: "Alpaca CCD"
+   - Filter Wheel: "Alpaca FilterWheel"
+   - Focuser: "Alpaca Focuser"
+   - Dome: "Alpaca Dome"
 3. Configure connection settings for each device
 4. Connect and start imaging!
 
@@ -121,20 +135,17 @@ indiserver -v indi_alpaca_ccd
 
 Detailed documentation available in the `docs/` folder:
 
-- [Supported.Common.md](docs/Supported.Common.md) - Common ASCOM methods (7/14 working)
-- [Supported.Telescope.md](docs/Supported.Telescope.md) - Telescope methods (65/84 working)
-- [Supported.Camera.md](docs/Supported.Camera.md) - Camera methods (40/58 working)
-- [Supported.FilterWheel.md](docs/Supported.FilterWheel.md) - FilterWheel methods (4/4 working)
-- [Supported.Focuser.md](docs/Supported.Focuser.md) - Focuser methods (10/13 working)
+- [Supported.Common.md](docs/Supported.Common.md) - Common ASCOM methods
+- [Supported.Telescope.md](docs/Supported.Telescope.md) - Telescope methods
+- [Supported.Camera.md](docs/Supported.Camera.md) - Camera methods
+- [Supported.FilterWheel.md](docs/Supported.FilterWheel.md) - FilterWheel methods
+- [Supported.Focuser.md](docs/Supported.Focuser.md) - Focuser methods
 - [CCD_DRIVER_STATUS.md](docs/CCD_DRIVER_STATUS.md) - CCD driver implementation details
 - [FILTERWHEEL_DRIVER_STATUS.md](docs/FILTERWHEEL_DRIVER_STATUS.md) - FilterWheel driver details
 
-### API Testing Results
+### API Testing
 
-Comprehensive API testing completed against alpaca v1.1.2-1:
-- **Overall**: 126/173 methods working (73% success rate)
-- All critical imaging and positioning functions operational
-- See documentation files for complete method-by-method results
+The drivers implement the ASCOM Alpaca API specification. Specific device capabilities may vary based on the hardware implementation.
 
 ## 🧪 Testing
 
@@ -160,17 +171,17 @@ See [alpaca-tests/README.md](alpaca-tests/README.md) for complete test program d
 
 ## 🐛 Known Issues & Limitations
 
-### Hardware Limitations (alpaca)
-- No Alt/Az slewing support
-- No camera binning
-- No camera cooling control
-- Focuser absolute positioning only (no relative moves)
-- No pulse guiding
+### General
+- Device capabilities vary by manufacturer and firmware
+- Some optional ASCOM methods may not be implemented by all devices
+- Error handling depends on device firmware quality
 
 ### Driver Status
 - Coordinate updates may be slow during rapid slewing
-- Temperature compensation not available (focuser)
-- Some ASCOM methods return "not implemented" errors
+- Some devices may return "not implemented" for optional methods
+- Feature availability depends on specific device implementation
+
+Check your device's documentation for specific capabilities and limitations.
 
 ## 🤝 Contributing
 
@@ -187,10 +198,11 @@ Contributions welcome! This project is in active development.
 ```
 indi-alpaca/
 ├── indi-alpaca/           # Driver source code
-│   ├── indi_alpaca.cpp/.h              # Telescope driver
+│   ├── indi_alpaca_telescope.cpp/.h    # Telescope driver
 │   ├── indi_alpaca_ccd.cpp/.h          # CCD driver
 │   ├── indi_alpaca_filterwheel.cpp/.h  # FilterWheel driver
 │   ├── indi_alpaca_focuser.cpp/.h      # Focuser driver
+│   ├── indi_alpaca_dome.cpp/.h         # Dome driver
 │   ├── indi_alpaca.xml                 # INDI device registration
 │   └── CMakeLists.txt                   # Build configuration
 ├── alpaca-tests/           # API validation test programs
@@ -202,7 +214,7 @@ indi-alpaca/
 
 - [INDI Library](https://github.com/indilib/indi) - INDI framework
 - [ASCOM Alpaca API](https://ascom-standards.org/api/) - API specification
-- [alpaca Telescope](https://www.zwoastro.com/alpaca/) - Hardware information
+- [ASCOM Initiative](https://ascom-standards.org/) - Standards organization
 - [KStars/Ekos](https://edu.kde.org/kstars/) - Astronomy software
 
 ## 📄 License
@@ -213,15 +225,15 @@ LGPL-2.1 License - See individual source files for details.
 
 - INDI development team for the excellent framework
 - ASCOM Initiative for the Alpaca API standard
-- ZWO for the alpaca smart telescope
+- Contributors to Alpaca-compatible device firmware
 - StellarMate for testing platform
 
 ## ⚠️ Disclaimer
 
-This is an independent open-source project and is not officially endorsed or supported by ZWO. Use at your own risk. Always ensure your equipment is properly set up and supervised during automated operations.
+This is an independent open-source project providing generic ASCOM Alpaca protocol drivers. Use at your own risk. Always ensure your equipment is properly set up and supervised during automated operations.
 
 ---
 
-**alpaca Firmware Tested:** v1.1.2-1  
-**INDI Library Version:** 2.1.7  
-**Last Updated:** January 2, 2026
+**ASCOM Alpaca Protocol**: v1  
+**INDI Library Version**: 2.1.7  
+**Last Updated**: January 10, 2026

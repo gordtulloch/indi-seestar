@@ -1,6 +1,8 @@
-# INDI alpaca Driver
+# INDI Alpaca Drivers
 
-INDI driver implementation for the ZWO alpaca smart telescope using the ASCOM Alpaca REST API.
+Generic INDI driver implementation for ASCOM Alpaca-compatible devices using the ASCOM Alpaca REST API.
+
+These drivers provide a bridge between INDI-based astronomy software (like KStars/Ekos) and any device that implements the ASCOM Alpaca protocol, including telescopes, cameras, filter wheels, focusers, and domes.
 
 ## Build Requirements
 
@@ -41,15 +43,23 @@ sudo make install
 - libcurl 8.5.0
 - GCC 13.3.0
 
-Binary installed to: `/usr/local/bin/indi_alpaca_telescope`
+Binaries installed to: `/usr/local/bin/`
+- `indi_alpaca_telescope`
+- `indi_alpaca_ccd`
+- `indi_alpaca_filterwheel`
+- `indi_alpaca_focuser`
+- `indi_alpaca_dome`
+
 XML config installed to: `/usr/local/share/indi/indi_alpaca.xml`
 
 ## Testing the Driver
 
 ### 1. Start the driver
 ```bash
-# Start INDI server with the alpaca driver
+# Start INDI server with one or more Alpaca drivers
 indiserver indi_alpaca_telescope
+indiserver indi_alpaca_ccd
+indiserver indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_focuser
 
 # Or with verbose output for debugging
 indiserver -v indi_alpaca_telescope
@@ -57,81 +67,97 @@ indiserver -v indi_alpaca_telescope
 
 ### 2. Test with INDI tools
 ```bash
-# List all properties
-indi_getprop "alpaca.*"
+# List all properties (replace device_name with actual device name)
+indi_getprop "Alpaca Telescope.*"
 
 # Check connection status
-indi_getprop "alpaca.CONNECTION.*"
+indi_getprop "Alpaca Telescope.CONNECTION.*"
 
-# Connect to the telescope (make sure alpaca is on and accessible)
-indi_setprop "alpaca.CONNECTION.CONNECT=On"
+# Connect to the device (make sure Alpaca device is on and accessible)
+indi_setprop "Alpaca Telescope.CONNECTION.CONNECT=On"
 ```
 
 ### 3. Test with a GUI client
-- **KStars**: Add alpaca under Equipment Manager → Telescopes
+- **KStars**: Add Alpaca devices under Equipment Manager
 - **INDI Control Panel**: Connect and control through the GUI
 
 ## Configuration
 
-The driver connects to the alpaca via its Alpaca API on port 32323.
+The drivers connect to Alpaca-compatible devices via the ASCOM Alpaca REST API.
 
 Default settings:
-- **Host**: alpaca.local
-- **Port**: 32323
+- **Host**: alpaca.local (configurable for your device's hostname/IP)
+- **Port**: 32323 (standard Alpaca port, but configurable)
 - **Device Number**: 0
 
 These can be changed in the driver's connection settings.
 
 ## Features
 
-### Currently Implemented
+### Available Drivers
 
-#### Telescope Interface
-- ✅ Connection management
-- ✅ Position reporting (RA/Dec, Alt/Az)
-- ✅ GoTo (slew to coordinates)
-- ✅ Sync
-- ✅ Abort slew
-- ✅ Park/Unpark
-- ✅ Tracking enable/disable
-- ✅ Tracking rate selection (Sidereal/Lunar/Solar)
-- ✅ Manual motion control (N/S/E/W)
-- ✅ Find Home
-- ✅ Device information display
+#### Telescope Driver (indi_alpaca_telescope)
+- Connection management
+- Position reporting (RA/Dec, Alt/Az)
+- GoTo (slew to coordinates)
+- Sync
+- Abort slew
+- Park/Unpark
+- Tracking enable/disable
+- Tracking rate selection (Sidereal/Lunar/Solar)
+- Manual motion control (N/S/E/W)
+- Device information display
 
-### Planned Features
+#### Camera Driver (indi_alpaca_ccd)
+- Exposure control
+- Image download
+- Temperature monitoring
+- Gain/offset control
+- Binning support
 
-- Camera interface (exposure control, image download)
-- FilterWheel interface (3 filters: Dark, IR, LP)
-- Focuser interface (absolute positioning 0-2600 steps)
-- Pulse guiding
+#### FilterWheel Driver (indi_alpaca_filterwheel)
+- Filter position control
+- Filter name display
+- Position reporting
+
+#### Focuser Driver (indi_alpaca_focuser)
+- Absolute positioning
+- Temperature compensation
+- Position reporting
+
+#### Dome Driver (indi_alpaca_dome)
+- Azimuth control
+- Shutter control
+- Slaving to telescope
+- Park/Home operations
+
+### Planned Enhancements
+
 - Enhanced error handling
 - State management improvements
+- Device-specific action support
+- Multi-device coordination
 
 ## Known Limitations
 
-Based on comprehensive API testing:
+These are general Alpaca protocol limitations - specific device capabilities may vary:
 
-### Telescope
-- No Alt/Az slewing (RA/Dec only)
-- Site location read-only
-- Guide rates read-only
-- Track rates read-only
+### General
+- Capabilities depend on the specific Alpaca device implementation
+- Some devices may not implement all optional Alpaca methods
+- Error handling depends on device firmware quality
 
-### Future Devices
-- Camera: No binning, no cooling control
-- Focuser: Absolute positioning only (no relative moves)
-- FilterWheel: 3 filters fixed
-
-See [AlpacaAPIComparison.md](../AlpacaAPIComparison.md) for complete API support details.
+See device-specific documentation for detailed API support.
 
 ## Usage
 
-### Starting the Driver
+### Starting the Drivers
 
 ```bash
-# Start INDI server with alpaca driver
+# Start INDI server with Alpaca drivers
 indiserver indi_alpaca_telescope
+indiserver indi_alpaca_ccd
+indiserver indi_alpaca_telescope indi_alpaca_ccd indi_alpaca_focuser
 ```
 
 ### With INDI Control Panel
@@ -139,7 +165,7 @@ indiserver indi_alpaca_telescope
 1. Start INDI server: `indiserver indi_alpaca_telescope`
 2. Launch INDI Control Panel: `indi_control_panel`
 3. Connect to localhost:7624
-4. Configure connection settings (host/port)
+4. Configure connection settings (host/port/device number)
 5. Connect to device
 
 ### With KStars/Ekos
@@ -147,7 +173,7 @@ indiserver indi_alpaca_telescope
 1. Open KStars
 2. Go to Tools → Ekos
 3. Add Profile
-4. Select "alpaca" as telescope
+4. Select Alpaca devices from the equipment lists
 5. Start Ekos
 6. Connect and use
 
@@ -167,20 +193,24 @@ Test programs are available in the `../tests` directory for API validation.
 
 ## Troubleshooting
 
-### Cannot connect to alpaca
+### Cannot connect to Alpaca device
 
-1. Verify alpaca is powered on and on network
-2. Check hostname resolution: `ping alpaca.local`
-3. Verify Alpaca API port: `curl http://alpaca.local:32323/api/v1/telescope/0/connected`
+1. Verify device is powered on and on network
+2. Check hostname resolution: `ping <your-device-hostname>`
+3. Verify Alpaca API port: `curl http://<device-host>:<port>/api/v1/telescope/0/connected`
 4. Check firewall settings
+5. Verify device number matches your Alpaca device configuration
 
 ### Operations fail with "Invalid while parked"
 
-The telescope must be unparked before most operations. Use the Unpark button.
+Some devices must be unparked before operations. Use the Unpark button/command.
 
-### Find Home fails
+### Device not responding
 
-Find Home cannot be executed while telescope is parked. Unpark first.
+1. Check INDI logs for error messages
+2. Verify Alpaca API is responding with curl/browser
+3. Check device number configuration (usually 0)
+4. Ensure no other application is controlling the device
 
 ## Contributing
 
@@ -198,13 +228,14 @@ Gord Tulloch
 
 - INDI Library developers
 - ASCOM Initiative for Alpaca API specification
-- ZWO for alpaca hardware
-- Testing data from comprehensive API validation
+- Contributors to Alpaca device firmware
 
 ## Version History
 
 ### 1.0.0 (In Development)
-- Initial telescope interface implementation
-- Basic position, slewing, parking, tracking
-- Manual motion control
-- Find Home support
+- Initial release of generic Alpaca drivers
+- Telescope interface implementation
+- Camera interface implementation (from INDI core)
+- FilterWheel interface implementation
+- Focuser interface implementation
+- Dome interface implementation (enhanced from INDI core)
