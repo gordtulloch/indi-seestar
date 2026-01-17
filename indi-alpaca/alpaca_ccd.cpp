@@ -452,7 +452,7 @@ bool AlpacaCCD::ISNewNumber(const char *dev, const char *name, double values[], 
             updateProperty(GainNP, values, names, n, [this, values]()
             {
                 nlohmann::json response;
-                nlohmann::json body = {{"Gain", values[0]}};
+                nlohmann::json body = {{"Gain", static_cast<int>(values[0])}};
                 return sendAlpacaPUT("/gain", body, response);
             }, true);
             return true;
@@ -462,7 +462,7 @@ bool AlpacaCCD::ISNewNumber(const char *dev, const char *name, double values[], 
             updateProperty(OffsetNP, values, names, n, [this, values]()
             {
                 nlohmann::json response;
-                nlohmann::json body = {{"Offset", values[0]}};
+                nlohmann::json body = {{"Offset", static_cast<int>(values[0])}};
                 return sendAlpacaPUT("/offset", body, response);
             }, true);
             return true;
