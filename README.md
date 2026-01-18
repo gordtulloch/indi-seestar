@@ -41,6 +41,7 @@ All drivers communicate via the standard ASCOM Alpaca REST API (default port 323
 - Multiple tracking modes (Sidereal, Lunar, Solar)
 - Manual axis movement and guide rates
 - Sync and alignment support
+- Site location (latitude/longitude) query and configuration
 
 ### CCD Driver
 - Image capture with configurable exposure

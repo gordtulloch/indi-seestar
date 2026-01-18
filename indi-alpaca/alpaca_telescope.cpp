@@ -292,6 +292,51 @@ bool alpacaTelescopeDriver::Handshake()
         }
     }
     
+    // Get site location from device
+    double latitude = 0.0, longitude = 0.0;
+    bool locationValid = false;
+    
+    if (sendAlpacaGET("/sitelatitude", response) && response.contains("Value"))
+    {
+        latitude = response["Value"].get<double>();
+        locationValid = true;
+        LOGF_INFO("Site latitude from device: %.6f°", latitude);
+    }
+    else
+    {
+        LOG_WARN("Failed to get site latitude from device");
+    }
+    
+    if (sendAlpacaGET("/sitelongitude", response) && response.contains("Value"))
+    {
+        longitude = response["Value"].get<double>();
+        LOGF_INFO("Site longitude from device: %.6f°", longitude);
+    }
+    else
+    {
+        LOG_WARN("Failed to get site longitude from device");
+        locationValid = false;
+    }
+    
+    // Update INDI location property if we got valid data
+    if (locationValid)
+    {
+        // INDI uses: LOCATION_LATITUDE = latitude (positive north), LOCATION_LONGITUDE = longitude (positive east)
+        // Alpaca uses same convention
+        LocationNP[LOCATION_LATITUDE].setValue(latitude);
+        LocationNP[LOCATION_LONGITUDE].setValue(longitude);
+        LocationNP[LOCATION_ELEVATION].setValue(0); // Elevation not available from Alpaca
+        LocationNP.setState(IPS_OK);
+        LocationNP.apply();
+        
+        // Calculate and cache sin/cos for coordinate transformations
+        double latRad = latitude * M_PI / 180.0;
+        m_sinLat = sin(latRad);
+        m_cosLat = cos(latRad);
+        
+        LOGF_INFO("Site location set: Lat=%.6f° Long=%.6f°", latitude, longitude);
+    }
+    
     // Get initial coordinates
     ReadScopeStatus();
     
@@ -706,6 +751,39 @@ bool alpacaTelescopeDriver::saveConfigItems(FILE *fp)
     INDI::Telescope::saveConfigItems(fp);
     ServerAddressTP.save(fp);
     return true;
+}
+
+bool alpacaTelescopeDriver::updateLocation(double latitude, double longitude, double elevation)
+{
+    // Update location on the Alpaca device
+    nlohmann::json request, response;
+    
+    // Set latitude
+    request["SiteLatitude"] = latitude;
+    if (!sendAlpacaPUT("/sitelatitude", request, response))
+    {
+        LOG_ERROR("Failed to set site latitude on device");
+        return false;
+    }
+    
+    // Set longitude  
+    request.clear();
+    request["SiteLongitude"] = longitude;
+    if (!sendAlpacaPUT("/sitelongitude", request, response))
+    {
+        LOG_ERROR("Failed to set site longitude on device");
+        return false;
+    }
+    
+    // Calculate and cache sin/cos for coordinate transformations
+    double latRad = latitude * M_PI / 180.0;
+    m_sinLat = sin(latRad);
+    m_cosLat = cos(latRad);
+    
+    LOGF_INFO("Site location updated: Lat=%.6f° Long=%.6f°", latitude, longitude);
+    
+    // Call base class to update INDI properties
+    return INDI::Telescope::updateLocation(latitude, longitude, elevation);
 }
 
 // Alpaca helper methods

@@ -71,6 +71,9 @@ protected:
 
     // Save configuration
     virtual bool saveConfigItems(FILE *fp) override;
+    
+    // Site location
+    virtual bool updateLocation(double latitude, double longitude, double elevation) override;
 
 private:
     // State tracking
