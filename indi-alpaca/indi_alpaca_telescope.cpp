@@ -136,6 +136,22 @@ bool alpacaTelescopeDriver::ISNewNumber(const char *dev, const char *name, doubl
     return INDI::Telescope::ISNewNumber(dev, name, values, names, n);
 }
 
+void alpacaTelescopeDriver::TimerHit()
+{
+    if (!isConnected())
+    {
+        return;
+    }
+    
+    ReadScopeStatus();
+    
+    // Schedule next timer hit
+    SetTimer(POLLMS);
+    
+    // Call parent timer to handle any other periodic tasks
+    INDI::Telescope::TimerHit();
+}
+
 bool alpacaTelescopeDriver::Connect()
 {
     std::string host = tcpConnection->host();
@@ -166,6 +182,9 @@ bool alpacaTelescopeDriver::Connect()
         httpClient.reset();
         return false;
     }
+    
+    // Start the timer
+    SetTimer(POLLMS);
     
     LOG_INFO("Successfully connected to alpaca");
     return true;
@@ -308,7 +327,6 @@ bool alpacaTelescopeDriver::ReadScopeStatus()
     {
         newRA = response["Value"].get<double>();
         raUpdated = true;
-        LOGF_DEBUG("Alpaca /rightascension returned: %.6f hours", newRA);
     }
     else
     {
@@ -319,30 +337,25 @@ bool alpacaTelescopeDriver::ReadScopeStatus()
     {
         newDec = response["Value"].get<double>();
         decUpdated = true;
-        LOGF_DEBUG("Alpaca /declination returned: %.6f degrees", newDec);
     }
     else
     {
         LOG_WARN("Failed to get Dec from Alpaca API");
     }
     
-    // Update current coordinates and always call NewRaDec
+    // Update current coordinates
     if (raUpdated && decUpdated)
     {
-        bool coordsChanged = (std::abs(newRA - m_currentRA) > 0.0001 || std::abs(newDec - m_currentDEC) > 0.0001);
-        
-        if (coordsChanged)
-        {
-            LOGF_INFO("Position changed: RA=%.6f hours (%.2f°), Dec=%.6f°", 
-                      newRA, newRA * 15.0, newDec);
-        }
-        
         m_currentRA = newRA;
         m_currentDEC = newDec;
         
-        // Always update INDI properties even if position hasn't changed
-        // This is important for tracking and for client display updates
+        // Always call NewRaDec to update client display
+        // This is critical during slewing to show real-time position updates
         NewRaDec(m_currentRA, m_currentDEC);
+    }
+    else
+    {
+        LOG_WARN("NewRaDec NOT called - coordinate update failed");
     }
     
     // Get slewing state
@@ -419,11 +432,12 @@ bool alpacaTelescopeDriver::Goto(double ra, double dec)
     }
     
     // Step 3: Start slew to target
-    // Note: Some Alpaca devices may close the connection immediately after receiving
-    // the slew command, which causes a read error but the slew still executes.
-    // We'll consider this acceptable behavior.
     nlohmann::json emptyRequest;
-    sendAlpacaPUT("/slewtotarget", emptyRequest, response);
+    if (!sendAlpacaPUT("/slewtotarget", emptyRequest, response))
+    {
+        LOG_ERROR("Failed to send GoTo command");
+        return false;
+    }
     
     TrackState = SCOPE_SLEWING;
     LOG_INFO("GoTo command sent - slewing to target");
@@ -800,8 +814,17 @@ bool alpacaTelescopeDriver::sendAlpacaPUT(const std::string& endpoint, const nlo
 
     if (!result)
     {
-        LOGF_ERROR("PUT %s failed: %s", endpoint.c_str(),
-                   httplib::to_string(result.error()).c_str());
+        // Some Alpaca devices (like Seestar) close connection immediately after
+        // receiving /slewtotarget command. Log as debug instead of error.
+        if (endpoint == "/slewtotarget")
+        {
+            LOGF_DEBUG("PUT %s: connection closed (expected for some devices)", endpoint.c_str());
+        }
+        else
+        {
+            LOGF_ERROR("PUT %s failed: %s", endpoint.c_str(),
+                       httplib::to_string(result.error()).c_str());
+        }
         return false;
     }
 
@@ -817,9 +840,9 @@ bool alpacaTelescopeDriver::sendAlpacaPUT(const std::string& endpoint, const nlo
 
         if (response.contains("ErrorNumber") && response["ErrorNumber"].get<int>() != 0)
         {
-            LOGF_ERROR("Alpaca error %s: %d - %s", endpoint.c_str(),
-                       response["ErrorNumber"].get<int>(),
-                       response.value("ErrorMessage", "").c_str());
+            int errorNum = response["ErrorNumber"].get<int>();
+            std::string errorMsg = response.value("ErrorMessage", "");
+            LOGF_ERROR("Alpaca error %s: %d - %s", endpoint.c_str(), errorNum, errorMsg.c_str());
             return false;
         }
 
