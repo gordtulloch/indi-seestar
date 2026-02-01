@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_alpaca_filterwheel.h"
+#include "indi-alpaca_filterwheel.h"
 #include <cstring>
 #include <memory>
 

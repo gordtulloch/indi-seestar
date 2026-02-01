@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "alpaca_focuser.h"
+#include "indi_alpaca_focuser.h"
 #include <cstring>
 #include <memory>
 #include <cmath>

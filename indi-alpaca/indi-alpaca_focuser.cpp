@@ -1,5 +1,5 @@
 /*
-    INDI alpaca FilterWheel Driver
+    INDI alpaca Focuser Driver
     
     Copyright (C) 2024 Gord Tulloch
 
@@ -18,28 +18,38 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_alpaca_filterwheel.h"
+#include "indi-alpaca_focuser.h"
 #include <cstring>
 #include <memory>
+#include <cmath>
 
-static std::unique_ptr<AlpacaFilterWheel> alpacaFilterWheel(new AlpacaFilterWheel());
+static std::unique_ptr<AlpacaFocuser> alpacaFocuser(new AlpacaFocuser());
 
-AlpacaFilterWheel::AlpacaFilterWheel()
+AlpacaFocuser::AlpacaFocuser()
 {
     setVersion(1, 0);
+    FI::SetCapability(FOCUSER_CAN_ABS_MOVE | FOCUSER_CAN_ABORT);
 }
 
-const char *AlpacaFilterWheel::getDefaultName()
+const char *AlpacaFocuser::getDefaultName()
 {
-    return "alpaca FilterWheel";
+    return "alpaca Focuser";
 }
 
-bool AlpacaFilterWheel::initProperties()
+bool AlpacaFocuser::initProperties()
 {
-    INDI::FilterWheel::initProperties();
+    INDI::Focuser::initProperties();
 
-    // Set connection mode to TCP only
-    setFilterConnection(CONNECTION_TCP);
+    // Disable automatic connection handling - Alpaca is network-only
+    // Explicitly remove all default connection interfaces
+    setActiveConnection(nullptr);
+    
+    // Remove any registered connection plugins
+    deleteProperty("CONNECTION_MODE");
+    deleteProperty("DEVICE_PORT");
+    deleteProperty("DEVICE_BAUD_RATE");
+    deleteProperty("DEVICE_AUTO_SEARCH");
+    deleteProperty("CONNECTION");
 
     // Server address
     IUFillText(&ServerAddressT[0], "HOST", "Host", m_Host.c_str());
@@ -52,15 +62,8 @@ bool AlpacaFilterWheel::initProperties()
     loadConfig(true, "SERVER_ADDRESS");
     
     // Update m_Host and m_Port from loaded config
-    // Check if config was actually loaded (text will have non-default values)
-    if (ServerAddressT[0].text && strlen(ServerAddressT[0].text) > 0)
-    {
-        m_Host = ServerAddressT[0].text;
-    }
-    if (ServerAddressT[1].text && strlen(ServerAddressT[1].text) > 0)
-    {
-        m_Port = std::stoi(ServerAddressT[1].text);
-    }
+    m_Host = ServerAddressT[0].text;
+    m_Port = std::stoi(ServerAddressT[1].text);
 
     // Device information
     IUFillText(&DeviceInfoT[0], "DESCRIPTION", "Description", "");
@@ -68,41 +71,40 @@ bool AlpacaFilterWheel::initProperties()
     IUFillText(&DeviceInfoT[2], "DRIVERVERSION", "Driver Version", "");
     IUFillText(&DeviceInfoT[3], "INTERFACEVERSION", "Interface Version", "");
     IUFillTextVector(&DeviceInfoTP, DeviceInfoT, 4, getDeviceName(), "DEVICE_INFO",
-                     "Device Info", INFO_TAB, IP_RO, 60, IPS_IDLE);
+                     "Device Info", OPTIONS_TAB, IP_RO, 60, IPS_IDLE);
 
-    // Focus offsets for each filter
-    IUFillNumber(&FocusOffsetsN[0], "OFFSET_0", "Dark Offset", "%.0f", -1000, 1000, 1, 0);
-    IUFillNumber(&FocusOffsetsN[1], "OFFSET_1", "IR Offset", "%.0f", -1000, 1000, 1, 0);
-    IUFillNumber(&FocusOffsetsN[2], "OFFSET_2", "LP Offset", "%.0f", -1000, 1000, 1, 0);
-    IUFillNumberVector(&FocusOffsetsNP, FocusOffsetsN, 3, getDeviceName(), "FOCUS_OFFSETS",
-                       "Focus Offsets", FILTER_TAB, IP_RO, 60, IPS_IDLE);
+    // Temperature monitoring (read-only)
+    IUFillNumber(&TemperatureN[0], "TEMPERATURE", "Temperature (°C)", "%.2f", -50, 100, 0, 0);
+    IUFillNumberVector(&TemperatureNP, TemperatureN, 1, getDeviceName(), "FOCUS_TEMPERATURE",
+                       "Temperature", MAIN_CONTROL_TAB, IP_RO, 60, IPS_IDLE);
 
     addDebugControl();
+    setDefaultPollingPeriod(500); // Poll every 500ms
 
     return true;
 }
 
-bool AlpacaFilterWheel::updateProperties()
+bool AlpacaFocuser::updateProperties()
 {
-    INDI::FilterWheel::updateProperties();
+    INDI::Focuser::updateProperties();
 
     if (isConnected())
     {
         defineProperty(&DeviceInfoTP);
-        defineProperty(&FocusOffsetsNP);
+        defineProperty(&TemperatureNP);
     }
     else
     {
         deleteProperty(DeviceInfoTP.name);
-        deleteProperty(FocusOffsetsNP.name);
+        deleteProperty(TemperatureNP.name);
     }
 
     return true;
 }
 
-bool AlpacaFilterWheel::Connect()
+bool AlpacaFocuser::Connect()
 {
-    LOG_INFO("Connecting to alpaca FilterWheel...");
+    LOG_INFO("Connecting to alpaca Focuser...");
 
     // Create HTTP client
     m_AlpacaClient.reset(new httplib::Client(m_Host, m_Port));
@@ -159,20 +161,21 @@ bool AlpacaFilterWheel::Connect()
 
     IDSetText(&DeviceInfoTP, nullptr);
 
-    // Setup filter wheel
-    if (!setupFilterWheel())
+    // Setup focuser
+    if (!setupFocuser())
     {
-        LOG_ERROR("Failed to setup filter wheel");
+        LOG_ERROR("Failed to setup focuser");
         return false;
     }
 
-    LOG_INFO("alpaca FilterWheel connected successfully");
+    LOG_INFO("alpaca Focuser connected successfully");
+    SetTimer(getCurrentPollingPeriod());
     return true;
 }
 
-bool AlpacaFilterWheel::Disconnect()
+bool AlpacaFocuser::Disconnect()
 {
-    LOG_INFO("Disconnecting alpaca FilterWheel...");
+    LOG_INFO("Disconnecting alpaca Focuser...");
 
     // Disconnect the device
     nlohmann::json response;
@@ -180,88 +183,80 @@ bool AlpacaFilterWheel::Disconnect()
 
     m_AlpacaClient.reset();
 
-    LOG_INFO("alpaca FilterWheel disconnected");
+    LOG_INFO("alpaca Focuser disconnected");
     return true;
 }
 
-bool AlpacaFilterWheel::setupFilterWheel()
+bool AlpacaFocuser::setupFocuser()
 {
     nlohmann::json response;
 
-    // Query filter names
-    if (sendAlpacaGET("/names", response) && response.contains("Value"))
+    // Query maximum position
+    if (sendAlpacaGET("/maxstep", response) && response.contains("Value"))
     {
-        auto names = response["Value"];
-        if (names.is_array())
-        {
-            // Resize filter name property
-            FilterNameTP.resize(names.size());
-            
-            // Set filter names
-            for (size_t i = 0; i < names.size(); i++)
-            {
-                std::string name = names[i].get<std::string>();
-                FilterNameTP[i].setText(name.c_str());
-                LOGF_INFO("Filter %zu: %s", i, name.c_str());
-            }
-
-            FilterNameTP.apply();
-            LOGF_INFO("Found %zu filters", names.size());
-        }
-    }
-
-    // Query focus offsets
-    if (sendAlpacaGET("/focusoffsets", response) && response.contains("Value"))
-    {
-        auto offsets = response["Value"];
-        if (offsets.is_array())
-        {
-            for (size_t i = 0; i < offsets.size() && i < 3; i++)
-            {
-                int offset = offsets[i].get<int>();
-                FocusOffsetsN[i].value = offset;
-                LOGF_INFO("Filter %zu focus offset: %d steps", i, offset);
-            }
-            FocusOffsetsNP.s = IPS_OK;
-            IDSetNumber(&FocusOffsetsNP, nullptr);
-        }
+        int maxStep = response["Value"].get<int>();
+        FocusMaxPosNP[0].setValue(maxStep);
+        FocusMaxPosNP.setState(IPS_OK);
+        FocusMaxPosNP.apply();
+        LOGF_INFO("Focuser max position: %d steps", maxStep);
     }
 
     // Query current position
-    int currentPos = QueryFilter();
+    int currentPos = getPosition();
     if (currentPos >= 0)
     {
-        LOGF_INFO("Current filter position: %d", currentPos);
-        FilterSlotNP[0].setValue(currentPos + 1); // INDI uses 1-based indexing
-        FilterSlotNP.apply();
+        FocusAbsPosNP[0].setValue(currentPos);
+        FocusAbsPosNP.setState(IPS_OK);
+        FocusAbsPosNP.apply();
+        LOGF_INFO("Current focuser position: %d steps", currentPos);
+    }
+
+    // Query temperature
+    if (sendAlpacaGET("/temperature", response) && response.contains("Value"))
+    {
+        double temp = response["Value"].get<double>();
+        TemperatureN[0].value = temp;
+        TemperatureNP.s = IPS_OK;
+        IDSetNumber(&TemperatureNP, nullptr);
+        LOGF_INFO("Focuser temperature: %.2f°C", temp);
+    }
+
+    // Check if absolute positioning is supported (should be true)
+    if (sendAlpacaGET("/absolute", response) && response.contains("Value"))
+    {
+        bool absolute = response["Value"].get<bool>();
+        if (!absolute)
+        {
+            LOG_WARN("Focuser does not support absolute positioning!");
+        }
+        else
+        {
+            LOG_INFO("Absolute positioning confirmed");
+        }
     }
 
     return true;
 }
 
-bool AlpacaFilterWheel::SelectFilter(int position)
+IPState AlpacaFocuser::MoveAbsFocuser(uint32_t targetTicks)
 {
-    // Convert from INDI 1-based to ASCOM 0-based
-    int targetPos = position - 1;
-
-    const char *filterName = (targetPos < FilterNameTP.size()) ? FilterNameTP[targetPos].getText() : "Unknown";
-    LOGF_INFO("Selecting filter position %d (%s)", targetPos, filterName);
-
-    // Check if already at position to avoid error 1279
-    int currentPos = QueryFilter();
-    if (currentPos == targetPos)
+    // Validate range
+    if (targetTicks > FocusMaxPosNP[0].getValue())
     {
-        LOGF_INFO("Already at position %d, no movement needed", targetPos);
-        return true;
+        LOGF_ERROR("Target position %u exceeds maximum %u", targetTicks, 
+                   static_cast<uint32_t>(FocusMaxPosNP[0].getValue()));
+        return IPS_ALERT;
     }
 
+    LOGF_INFO("Moving to absolute position: %u", targetTicks);
+
     nlohmann::json response;
-    std::string data = "Position=" + std::to_string(targetPos);
+    std::string data = "Position=" + std::to_string(targetTicks);
     
-    if (!sendAlpacaPUT("/position", data, response))
+    if (!sendAlpacaPUT("/move", data, response))
     {
-        LOGF_ERROR("Failed to set filter position to %d", targetPos);
-        return false;
+        LOGF_ERROR("Failed to move to position %u", targetTicks);
+        return IPS_ALERT;
     }
 
     // Check for errors
@@ -272,35 +267,126 @@ bool AlpacaFilterWheel::SelectFilter(int position)
         {
             std::string errorMsg = response.contains("ErrorMessage") ? 
                                  response["ErrorMessage"].get<std::string>() : "Unknown error";
-            LOGF_ERROR("Error setting filter position: %d - %s", errorNum, errorMsg.c_str());
-            return false;
+            LOGF_ERROR("Error moving focuser: %d - %s", errorNum, errorMsg.c_str());
+            return IPS_ALERT;
         }
     }
 
-    LOGF_INFO("Filter position set to %d", targetPos);
+    m_TargetPosition = targetTicks;
+    m_Moving = true;
+    
+    return IPS_BUSY;
+}
+
+bool AlpacaFocuser::AbortFocuser()
+{
+    LOG_INFO("Aborting focuser movement");
+
+    nlohmann::json response;
+    
+    if (!sendAlpacaPUT("/halt", "", response))
+    {
+        LOG_ERROR("Failed to halt focuser");
+        return false;
+    }
+
+    m_Moving = false;
+    FocusAbsPosNP.setState(IPS_IDLE);
+    FocusAbsPosNP.apply();
+    
+    LOG_INFO("Focuser movement halted");
     return true;
 }
 
-int AlpacaFilterWheel::QueryFilter()
+void AlpacaFocuser::TimerHit()
+{
+    if (!isConnected())
+        return;
+
+    // Update temperature
+    nlohmann::json response;
+    if (sendAlpacaGET("/temperature", response) && response.contains("Value"))
+    {
+        double temp = response["Value"].get<double>();
+        if (std::abs(temp - TemperatureN[0].value) > 0.1)
+        {
+            TemperatureN[0].value = temp;
+            TemperatureNP.s = IPS_OK;
+            IDSetNumber(&TemperatureNP, nullptr);
+        }
+    }
+
+    // Check if moving
+    if (m_Moving)
+    {
+        bool moving = isMoving();
+        
+        if (!moving)
+        {
+            // Movement completed
+            m_Moving = false;
+            
+            // Update current position
+            int currentPos = getPosition();
+            if (currentPos >= 0)
+            {
+                FocusAbsPosNP[0].setValue(currentPos);
+                FocusAbsPosNP.setState(IPS_OK);
+                FocusAbsPosNP.apply();
+                
+                LOGF_INFO("Focuser reached position: %d", currentPos);
+            }
+        }
+        else
+        {
+            // Still moving, update current position
+            int currentPos = getPosition();
+            if (currentPos >= 0)
+            {
+                FocusAbsPosNP[0].setValue(currentPos);
+                FocusAbsPosNP.apply();
+            }
+        }
+    }
+
+    SetTimer(getCurrentPollingPeriod());
+}
+
+bool AlpacaFocuser::isMoving()
+{
+    nlohmann::json response;
+    
+    if (!sendAlpacaGET("/ismoving", response))
+    {
+        return false;
+    }
+
+    if (response.contains("Value"))
+    {
+        return response["Value"].get<bool>();
+    }
+
+    return false;
+}
+
+int AlpacaFocuser::getPosition()
 {
     nlohmann::json response;
     
     if (!sendAlpacaGET("/position", response))
     {
-        LOG_ERROR("Failed to query filter position");
         return -1;
     }
 
     if (response.contains("Value"))
     {
-        int pos = response["Value"].get<int>();
-        return pos; // Return 0-based position
+        return response["Value"].get<int>();
     }
 
     return -1;
 }
 
-bool AlpacaFilterWheel::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
+bool AlpacaFocuser::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
     if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
     {
@@ -321,15 +407,15 @@ bool AlpacaFilterWheel::ISNewText(const char *dev, const char *name, char *texts
         }
     }
 
-    return INDI::FilterWheel::ISNewText(dev, name, texts, names, n);
+    return INDI::Focuser::ISNewText(dev, name, texts, names, n);
 }
 
-bool AlpacaFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
+bool AlpacaFocuser::sendAlpacaGET(const std::string &endpoint, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;
 
-    std::string url = "/api/v1/filterwheel/" + std::to_string(m_DeviceNumber) + endpoint;
+    std::string url = "/api/v1/focuser/" + std::to_string(m_DeviceNumber) + endpoint;
     
     LOGF_DEBUG("GET %s", url.c_str());
     
@@ -373,12 +459,12 @@ bool AlpacaFilterWheel::sendAlpacaGET(const std::string &endpoint, nlohmann::jso
     }
 }
 
-bool AlpacaFilterWheel::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
+bool AlpacaFocuser::sendAlpacaPUT(const std::string &endpoint, const std::string &data, nlohmann::json &response)
 {
     if (!m_AlpacaClient)
         return false;
 
-    std::string url = "/api/v1/filterwheel/" + std::to_string(m_DeviceNumber) + endpoint;
+    std::string url = "/api/v1/focuser/" + std::to_string(m_DeviceNumber) + endpoint;
     
     // Add client info to data
     std::string fullData = data;
@@ -407,11 +493,11 @@ bool AlpacaFilterWheel::sendAlpacaPUT(const std::string &endpoint, const std::st
     {
         response = nlohmann::json::parse(res->body);
         
-        // Check for Alpaca errors (but ignore error 1279 - already at position)
+        // Check for Alpaca errors
         if (response.contains("ErrorNumber"))
         {
             int errorNum = response["ErrorNumber"].get<int>();
-            if (errorNum != 0 && errorNum != 1279)
+            if (errorNum != 0)
             {
                 std::string errorMsg = response.contains("ErrorMessage") ? 
                                      response["ErrorMessage"].get<std::string>() : "Unknown error";

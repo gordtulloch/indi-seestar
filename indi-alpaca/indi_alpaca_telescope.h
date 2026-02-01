@@ -108,10 +108,6 @@ private:
     int m_ClientID;
     int m_TransactionID{0};
     
-    // Connection properties
-    INDI::PropertyText ServerAddressTP {2};
-    enum { HOST, PORT };
-    
     // Device info properties
     INDI::PropertyText DeviceInfoTP {4};
     enum { DESCRIPTION, DRIVER_INFO, DRIVER_VERSION, INTERFACE_VERSION };

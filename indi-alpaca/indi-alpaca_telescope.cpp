@@ -18,8 +18,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "indi_alpaca_telescope.h"
-#include <connectionplugins/connectiontcp.h>
+#include "indi-alpaca_telescope.h"
 #include <memory>
 #include <cstring>
 #include <cmath>
@@ -41,26 +40,53 @@ alpacaTelescopeDriver::alpacaTelescopeDriver()
         TELESCOPE_CAN_GOTO |
         TELESCOPE_CAN_SYNC |
         TELESCOPE_CAN_ABORT |
-        TELESCOPE_CAN_PARK ,
+        TELESCOPE_CAN_PARK |
+        TELESCOPE_HAS_TRACK_MODE |
+        TELESCOPE_HAS_TRACK_RATE,
         4
     );
     m_ClientID = getpid();
-    LOG_DEBUG("Initializing from alpacaTelescope device...");
+    LOG_DEBUG("Initializing from LX200 Basic device...");
 }
 
 const char *alpacaTelescopeDriver::getDefaultName()
 {
-    return "Alpaca Telescope";
+    return "alpaca_telescope";
 }
 
 bool alpacaTelescopeDriver::initProperties()
 {
     INDI::Telescope::initProperties();
     
-    // Use built-in TCP connection with default alpaca.local:32323
-    setTelescopeConnection(CONNECTION_TCP);
-    tcpConnection->setDefaultHost("alpaca.local");
-    tcpConnection->setDefaultPort(32323);
+    // Use manual connection handling to avoid duplicate server properties
+    setActiveConnection(nullptr);
+    
+    // Override the mount type property to make it writable in the INDI client
+    MountTypeSP.fill(getDeviceName(), "TELESCOPE_MOUNT_TYPE", "Mount Type", MOTION_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
+
+    SlewRateSP[SLEW_GUIDE].fill("SLEW_GUIDE", "Guide", ISS_OFF);
+    SlewRateSP[SLEW_CENTERING].fill("SLEW_CENTERING", "Centering", ISS_OFF);
+    SlewRateSP[SLEW_FIND].fill("SLEW_FIND", "Find", ISS_OFF);
+    SlewRateSP[SLEW_MAX].fill("SLEW_MAX", "Max", ISS_ON);
+    SlewRateSP.fill(getDeviceName(), "TELESCOPE_SLEW_RATE", "Slew Rate", MOTION_TAB,
+                    IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+    
+    // Add track modes: Sidereal, Lunar, Solar
+    // Must be added after base class init but before properties are used
+    AddTrackMode("TRACK_SIDEREAL", "Sidereal", true);
+    AddTrackMode("TRACK_LUNAR", "Lunar");
+    AddTrackMode("TRACK_SOLAR", "Solar");
+    
+    // Server address
+    ServerAddressTP[HOST].fill("HOST", "Host", "alpaca.local");
+    ServerAddressTP[PORT].fill("PORT", "Port", "32323");
+    ServerAddressTP.fill(getDeviceName(), "SERVER_ADDRESS", "Server", CONNECTION_TAB, IP_RW, 60, IPS_IDLE);
+    
+    // Define property so it can be loaded
+    defineProperty(ServerAddressTP);
+    
+    // Load saved configuration
+    ServerAddressTP.load();
     
     // Device info
     DeviceInfoTP[DESCRIPTION].fill("DESCRIPTION", "Description", "");
@@ -71,13 +97,15 @@ bool alpacaTelescopeDriver::initProperties()
     
     SetParkDataType(PARK_RA_DEC);
     
+    // Set pier side to unknown to indicate this is not a GEM mount
+    setPierSide(PIER_UNKNOWN);
+
     // RA is a rotating frame, while HA or Alt/Az is not
     SetParkDataType(PARK_HA_DEC);
 
     /* Add debug controls so we may debug driver if necessary */
     addDebugControl();
     setDefaultPollingPeriod(250);
-    //LOG_DEBUG("Properties initialized");
 
     return true;
 }
@@ -118,6 +146,18 @@ bool alpacaTelescopeDriver::updateProperties()
 
 bool alpacaTelescopeDriver::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
 {
+    if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
+    {
+        if (ServerAddressTP.isNameMatch(name))
+        {
+            ServerAddressTP.update(texts, names, n);
+            ServerAddressTP.setState(IPS_OK);
+            ServerAddressTP.apply();
+            saveConfig(ServerAddressTP);
+            return true;
+        }
+    }
+    
     return INDI::Telescope::ISNewText(dev, name, texts, names, n);
 }
 
@@ -138,10 +178,16 @@ bool alpacaTelescopeDriver::ISNewNumber(const char *dev, const char *name, doubl
 
 bool alpacaTelescopeDriver::Connect()
 {
-    std::string host = tcpConnection->host();
-    int port = tcpConnection->port();
+    std::string host = ServerAddressTP[HOST].getText();
+    int port = 32323;
     
-    LOGF_INFO("Connecting to alpaca server at %s:%d", host.c_str(), port);
+    try {
+        port = std::stoi(ServerAddressTP[PORT].getText());
+    } catch (...) {
+        LOG_ERROR("Invalid port, using default 32323");
+    }
+    
+    LOGF_INFO("Connecting to alpaca at %s:%d", host.c_str(), port);
     
     httpClient = std::make_unique<httplib::Client>(host.c_str(), port);
     httpClient->set_connection_timeout(10);
@@ -396,11 +442,33 @@ bool alpacaTelescopeDriver::Goto(double ra, double dec)
         return false;
     }
     
+    // Check if telescope is at home position
+    nlohmann::json response;
+    if (sendAlpacaGET("/athome", response) && response.contains("Value"))
+    {
+        bool atHome = response["Value"].get<bool>();
+    }
+    
+    // Ensure tracking is enabled before slewing
+    if (!isTracking)
+    {
+        LOG_INFO("Enabling tracking for GoTo");
+        nlohmann::json trackRequest, trackResponse;
+        trackRequest["Tracking"] = true;
+        if (!sendAlpacaPUT("/tracking", trackRequest, trackResponse))
+        {
+            LOG_WARN("Could not enable tracking, attempting GoTo anyway");
+        }
+        else
+        {
+            isTracking = true;
+        }
+    }
+    
     LOGF_INFO("GoTo command: RA=%f Dec=%f", ra, dec);
     
     // Use ASCOM Alpaca pattern: set target coordinates first, then slew
     // Step 1: Set target RA
-    nlohmann::json response;
     nlohmann::json raRequest;
     raRequest["TargetRightAscension"] = ra;
     if (!sendAlpacaPUT("/targetrightascension", raRequest, response))
@@ -419,14 +487,15 @@ bool alpacaTelescopeDriver::Goto(double ra, double dec)
     }
     
     // Step 3: Start slew to target
-    // Note: Some Alpaca devices may close the connection immediately after receiving
-    // the slew command, which causes a read error but the slew still executes.
-    // We'll consider this acceptable behavior.
     nlohmann::json emptyRequest;
-    sendAlpacaPUT("/slewtotarget", emptyRequest, response);
+    if (!sendAlpacaPUT("/slewtotarget", emptyRequest, response))
+    {
+        LOG_ERROR("Failed to start GoTo");
+        return false;
+    }
     
     TrackState = SCOPE_SLEWING;
-    LOG_INFO("GoTo command sent - slewing to target");
+    LOG_INFO("GoTo started");
     return true;
 }
 
@@ -489,11 +558,11 @@ bool alpacaTelescopeDriver::Park()
         return false;
     }
     
-    // Mark as parked - set state to PARKED not PARKING since command is sent
+    // Mark as parked
     isParked = true;
     SetParked(true);
-    TrackState = SCOPE_PARKED;
-    LOG_INFO("Park command sent - telescope parked");
+    TrackState = SCOPE_PARKING;
+    LOG_INFO("Park command sent - telescope parking");
     
     return true;
 }
@@ -511,8 +580,7 @@ bool alpacaTelescopeDriver::UnPark()
         return false;
     }
     
-    // Immediately mark as unparked so INDI allows motion commands
-    // ReadScopeStatus will sync with actual device state
+    // Mark as unparked
     isParked = false;
     SetParked(false);
     TrackState = SCOPE_IDLE;
@@ -678,6 +746,7 @@ bool alpacaTelescopeDriver::MoveWE(INDI_DIR_WE dir, TelescopeMotionCommand comma
 bool alpacaTelescopeDriver::saveConfigItems(FILE *fp)
 {
     INDI::Telescope::saveConfigItems(fp);
+    ServerAddressTP.save(fp);
     return true;
 }
 
