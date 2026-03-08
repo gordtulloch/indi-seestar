@@ -80,36 +80,6 @@ class AlpacaCCD : public INDI::CCD
         virtual IPState GuideEast(uint32_t ms) override;
         virtual IPState GuideWest(uint32_t ms) override;
 
-    protected:
-        // ImageBytes metadata structure (44 bytes) as per ASCOM Alpaca API v10 section 8.7.1
-        // Made protected so derived classes can access it
-        struct ImageBytesMetadata
-        {
-            int32_t MetadataVersion;        // Bytes 0-3: Should be 1
-            int32_t ErrorNumber;            // Bytes 4-7: 0 for success
-            uint32_t ClientTransactionID;   // Bytes 8-11
-            uint32_t ServerTransactionID;   // Bytes 12-15
-            int32_t DataStart;              // Bytes 16-19: Offset to image data
-            int32_t ImageElementType;       // Bytes 20-23: Source array element type
-            int32_t TransmissionElementType;// Bytes 24-27: Network transmission type
-            int32_t Rank;                   // Bytes 28-31: 2 or 3 dimensions
-            int32_t Dimension1;             // Bytes 32-35: Width
-            int32_t Dimension2;             // Bytes 36-39: Height
-            int32_t Dimension3;             // Bytes 40-43: Planes (0 for 2D)
-        } __attribute__((packed));
-
-        // Connection properties - accessible to derived classes
-        INDI::PropertyText ServerAddressTP {2};  // Host and port
-        INDI::PropertyNumber DeviceNumberNP {1};  // Alpaca device number
-
-        /**
-         * @brief Build Alpaca form data from JSON request
-         * Virtual method that can be overridden by derived classes to change parameter ordering
-         * @param request JSON object with method parameters
-         * @return URL-encoded form data string
-         */
-        virtual std::string buildAlpacaFormData(const nlohmann::json& request);
-
     private:
         // Internal state variables
         bool m_ExposureInProgress {false};
@@ -128,15 +98,27 @@ class AlpacaCCD : public INDI::CCD
         bool sendAlpacaGET(const std::string &endpoint, nlohmann::json &response);
         bool sendAlpacaPUT(const std::string &endpoint, const nlohmann::json &request, nlohmann::json &response);
         std::string getAlpacaURL(const std::string &endpoint);
-        
-    protected:
         uint32_t getTransactionId()
         {
             return ++m_ClientTransactionID;
         }
-        
-    private:
         uint32_t m_ClientTransactionID {1};
+
+        // ImageBytes metadata structure (44 bytes) as per ASCOM Alpaca API v10 section 8.7.1
+        struct ImageBytesMetadata
+        {
+            int32_t MetadataVersion;        // Bytes 0-3: Should be 1
+            int32_t ErrorNumber;            // Bytes 4-7: 0 for success
+            uint32_t ClientTransactionID;   // Bytes 8-11
+            uint32_t ServerTransactionID;   // Bytes 12-15
+            int32_t DataStart;              // Bytes 16-19: Offset to image data
+            int32_t ImageElementType;       // Bytes 20-23: Source array element type
+            int32_t TransmissionElementType;// Bytes 24-27: Network transmission type
+            int32_t Rank;                   // Bytes 28-31: 2 or 3 dimensions
+            int32_t Dimension1;             // Bytes 32-35: Width
+            int32_t Dimension2;             // Bytes 36-39: Height
+            int32_t Dimension3;             // Bytes 40-43: Planes (0 for 2D)
+        } __attribute__((packed));
 
         // Extended image metadata for FITS headers
         struct ImageMetadata
@@ -158,19 +140,6 @@ class AlpacaCCD : public INDI::CCD
         bool alpacaGetImageArrayJSON(ImageMetadata &meta, uint8_t** buffer, size_t* buffer_size);
         bool downloadImage();
         bool processImageBytesData(uint8_t* buffer, size_t buffer_size, const ImageBytesMetadata &metadata);
-        
-        /**
-         * @brief Parse and validate ImageBytes metadata. Can be overridden by derived classes.
-         * 
-         * This method is called after receiving ImageBytes data to validate and potentially
-         * correct the metadata. Derived classes (like SeestarCCD) can override this to apply
-         * device-specific workarounds for non-standard implementations.
-         * 
-         * @param metadata Pointer to ImageBytesMetadata structure (can be modified)
-         * @param body_size Total size of the HTTP response body
-         * @return true if metadata is valid (after any corrections), false otherwise
-         */
-        virtual bool parseImageBytesMetadata(ImageBytesMetadata* metadata, size_t body_size);
         bool processMonoImage(uint8_t* buffer);
         bool processColorImage(uint8_t* buffer); // Placeholder for color image processing
 
@@ -197,6 +166,8 @@ class AlpacaCCD : public INDI::CCD
         bool sendPulseGuide(ALPACA_GUIDE_DIRECTION direction, long duration);
         std::string getSensorTypeString(uint8_t sensorType);
 
+        INDI::PropertyText ServerAddressTP {2};  // Host and port
+        INDI::PropertyNumber DeviceNumberNP {1};  // Alpaca device number
         INDI::PropertyNumber ConnectionSettingsNP {3}; // Timeout, Retries, Retry Delay
 
         INDI::PropertyNumber GainNP {1}; // CCD_GAIN

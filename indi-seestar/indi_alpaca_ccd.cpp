@@ -136,31 +136,14 @@ bool AlpacaCCD::Connect()
         return false;
     }
 
-    // Check if already connected
-    bool already_connected = response["Value"].get<bool>();
-    if (!already_connected)
-    {
-        // Set connected state
-        nlohmann::json body = {{"Connected", true}};
-        success = sendAlpacaPUT("/connected", body, response);
+    // Set connected state
+    nlohmann::json body = {{"Connected", true}};
+    success = sendAlpacaPUT("/connected", body, response);
 
-        // Try the newer /connect method if /connected fails
-        if (!success)
-        {
-            LOG_WARN("PUT /connected failed, trying newer /connect endpoint");
-            nlohmann::json empty_body = {};
-            success = sendAlpacaPUT("/connect", empty_body, response);
-            
-            if (!success)
-            {
-                LOG_ERROR("Failed to set connected state on Alpaca camera using both /connected and /connect methods.");
-                return false;
-            }
-        }
-    }
-    else
+    if (!success)
     {
-        LOG_INFO("Camera is already connected.");
+        LOG_ERROR("Failed to set connected state on Alpaca camera.");
+        return false;
     }
 
     LOG_INFO("Successfully connected to Alpaca camera.");
@@ -398,11 +381,12 @@ bool AlpacaCCD::Disconnect()
     {
         nlohmann::json response;
         nlohmann::json body = {{"Connected", false}};
-        
-        // Some devices don't support PUT /connected, so we just log and continue
-        if (!sendAlpacaPUT("/connected", body, response))
+        bool success = sendAlpacaPUT("/connected", body, response);
+
+        if (!success)
         {
-            LOG_WARN("Could not set disconnected state on Alpaca camera (device may not support this).");
+            LOG_ERROR("Failed to set disconnected state on Alpaca camera.");
+            return false;
         }
     }
 
@@ -999,18 +983,23 @@ bool AlpacaCCD::sendAlpacaGET(const std::string& endpoint, nlohmann::json& respo
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-/// Build Alpaca form data from JSON request (can be overridden by derived classes)
+///
 ////////////////////////////////////////////////////////////////////////////////////////////
-std::string AlpacaCCD::buildAlpacaFormData(const nlohmann::json& request)
+bool AlpacaCCD::sendAlpacaPUT(const std::string& endpoint, const nlohmann::json& request, nlohmann::json& response)
 {
-    // Standard Alpaca: ClientID and ClientTransactionID first, then method parameters
-    std::string form_data = "ClientID=" + std::to_string(getpid());
-    form_data += "&ClientTransactionID=" + std::to_string(getTransactionId());
+    if (!httpClient)
+    {
+        LOG_ERROR("HTTP client not initialized.");
+        return false;
+    }
 
-    // Add method-specific parameters
+    std::string url = getAlpacaURL(endpoint);
+
+    // Convert JSON to form data for Alpaca compatibility
+    std::string form_data;
     for (auto& [key, value] : request.items())
     {
-        form_data += "&";
+        if (!form_data.empty()) form_data += "&";
 
         if (value.is_string())
         {
@@ -1030,29 +1019,17 @@ std::string AlpacaCCD::buildAlpacaFormData(const nlohmann::json& request)
         }
     }
 
-    return form_data;
-}
+    // Add ClientID and ClientTransactionID to form data
+    if (!form_data.empty()) form_data += "&";
+    form_data += "ClientID=" + std::to_string(getpid());
+    form_data += "&ClientTransactionID=" + std::to_string(getTransactionId());
 
-////////////////////////////////////////////////////////////////////////////////////////////
-///
-////////////////////////////////////////////////////////////////////////////////////////////
-bool AlpacaCCD::sendAlpacaPUT(const std::string& endpoint, const nlohmann::json& request, nlohmann::json& response)
-{
-    if (!httpClient)
+    httplib::Headers headers =
     {
-        LOG_ERROR("HTTP client not initialized.");
-        return false;
-    }
+        {"Content-Type", "application/x-www-form-urlencoded"}
+    };
 
-    std::string url = getAlpacaURL(endpoint);
-
-    // Build form data with standard Alpaca parameter ordering
-    std::string form_data = buildAlpacaFormData(request);
-
-    LOGF_INFO("PUT URL: %s", url.c_str());
-    LOGF_INFO("PUT Body: %s", form_data.c_str());
-    
-    auto result = httpClient->Put(url.c_str(), form_data, "application/x-www-form-urlencoded");
+    auto result = httpClient->Put(url.c_str(), headers, form_data, "application/x-www-form-urlencoded");
 
     if (!result)
     {
@@ -1064,7 +1041,6 @@ bool AlpacaCCD::sendAlpacaPUT(const std::string& endpoint, const nlohmann::json&
     if (result->status != 200)
     {
         LOGF_ERROR("HTTP PUT %s returned status %d", endpoint.c_str(), result->status);
-        LOGF_ERROR("Response body: %s", result->body.c_str());
         return false;
     }
 
@@ -1111,52 +1087,6 @@ bool AlpacaCCD::alpacaGetImageReady()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-/// Parse and validate ImageBytes metadata (base implementation)
-/// Derived classes can override this to apply device-specific workarounds
-////////////////////////////////////////////////////////////////////////////////////////////
-bool AlpacaCCD::parseImageBytesMetadata(ImageBytesMetadata* metadata, size_t body_size)
-{
-    // Validate metadata version as per ASCOM Alpaca API v10 section 8.7.1
-    if (metadata->MetadataVersion != 1)
-    {
-        LOGF_ERROR("Unsupported ImageBytes metadata version: %d", metadata->MetadataVersion);
-        return false;
-    }
-
-    // Check for errors as per section 8.9
-    if (metadata->ErrorNumber != 0)
-    {
-        // Extract UTF8 error message from data section
-        size_t error_msg_size = body_size - metadata->DataStart;
-        if (static_cast<size_t>(metadata->DataStart) < body_size && error_msg_size > 0)
-        {
-            // Note: We can't access result->body here, so just log the error number
-            LOGF_ERROR("Alpaca ImageBytes error %d", metadata->ErrorNumber);
-        }
-        else
-        {
-            LOGF_ERROR("Alpaca ImageBytes error %d (no message)", metadata->ErrorNumber);
-        }
-        return false;
-    }
-
-    // Validate dimensions
-    if (metadata->Rank < 2 || metadata->Rank > 3)
-    {
-        LOGF_ERROR("Invalid image rank: %d (must be 2 or 3)", metadata->Rank);
-        return false;
-    }
-
-    if (metadata->Dimension1 <= 0 || metadata->Dimension2 <= 0)
-    {
-        LOGF_ERROR("Invalid image dimensions: %dx%d", metadata->Dimension1, metadata->Dimension2);
-        return false;
-    }
-
-    return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool AlpacaCCD::alpacaGetImageArrayImageBytes(uint8_t** buffer, size_t* buffer_size, ImageBytesMetadata* metadata)
@@ -1192,11 +1122,9 @@ bool AlpacaCCD::alpacaGetImageArrayImageBytes(uint8_t** buffer, size_t* buffer_s
 
     // Check Content-Type header as per ASCOM Alpaca API v10 section 8.5.3
     auto content_type = result->get_header_value("Content-Type");
-    LOGF_INFO("ImageArray response Content-Type: %s", content_type.c_str());
-    
     if (content_type.find("application/imagebytes") == std::string::npos)
     {
-        LOGF_WARN("Server returned Content-Type: %s (expected application/imagebytes), falling back to JSON", content_type.c_str());
+        LOGF_DEBUG("Server returned Content-Type: %s, falling back to JSON", content_type.c_str());
         return false; // Caller should try JSON fallback
     }
 
@@ -1210,9 +1138,43 @@ bool AlpacaCCD::alpacaGetImageArrayImageBytes(uint8_t** buffer, size_t* buffer_s
     // Extract metadata (44 bytes) with little-endian byte ordering as per section 8.8.2
     std::memcpy(metadata, result->body.data(), sizeof(ImageBytesMetadata));
 
-    // Parse and validate metadata (can be overridden by derived classes like SeestarCCD)
-    if (!parseImageBytesMetadata(metadata, result->body.size()))
+    // Convert from little-endian if needed (most systems are little-endian already)
+    // Note: The spec requires little-endian format for maximum compatibility
+
+    // Validate metadata version as per section 8.7.1
+    if (metadata->MetadataVersion != 1)
     {
+        LOGF_ERROR("Unsupported ImageBytes metadata version: %d", metadata->MetadataVersion);
+        return false;
+    }
+
+    // Check for errors as per section 8.9
+    if (metadata->ErrorNumber != 0)
+    {
+        // Extract UTF8 error message from data section
+        size_t error_msg_size = result->body.size() - metadata->DataStart;
+        if (static_cast<size_t>(metadata->DataStart) < result->body.size() && error_msg_size > 0)
+        {
+            std::string error_msg(result->body.data() + metadata->DataStart, error_msg_size);
+            LOGF_ERROR("Alpaca ImageBytes error %d: %s", metadata->ErrorNumber, error_msg.c_str());
+        }
+        else
+        {
+            LOGF_ERROR("Alpaca ImageBytes error %d (no message)", metadata->ErrorNumber);
+        }
+        return false;
+    }
+
+    // Validate dimensions
+    if (metadata->Rank < 2 || metadata->Rank > 3)
+    {
+        LOGF_ERROR("Invalid image rank: %d (must be 2 or 3)", metadata->Rank);
+        return false;
+    }
+
+    if (metadata->Dimension1 <= 0 || metadata->Dimension2 <= 0)
+    {
+        LOGF_ERROR("Invalid image dimensions: %dx%d", metadata->Dimension1, metadata->Dimension2);
         return false;
     }
 

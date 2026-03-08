@@ -26,8 +26,10 @@
 #include <indicom.h>
 #include <libnova/julian_day.h>
 
+#ifndef INDI_ALPACA_BASE_LIBRARY
 // We declare an auto pointer to alpacaTelescopeDriver instance
 std::unique_ptr<alpacaTelescopeDriver> alpaca(new alpacaTelescopeDriver());
+#endif
 
 #define RA_AXIS     0
 #define DEC_AXIS    1
@@ -855,6 +857,7 @@ bool alpacaTelescopeDriver::sendAlpacaPUT(const std::string& endpoint, const nlo
     }
 }
 
+#ifndef INDI_ALPACA_BASE_LIBRARY
 void ISGetProperties(const char *dev)
 {
     alpaca->ISGetProperties(dev);
@@ -884,3 +887,4 @@ void ISSnoopDevice(XMLEle *root)
 {
     alpaca->ISSnoopDevice(root);
 }
+#endif

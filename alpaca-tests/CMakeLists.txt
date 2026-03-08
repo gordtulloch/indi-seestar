@@ -2,14 +2,23 @@ cmake_minimum_required(VERSION 3.10)
 project(indi-alpaca-tests)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find required packages
 find_package(CURL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(INDI libindi)
+find_package(Threads REQUIRED)
+
+# Find OpenSSL for httplib
+find_package(OpenSSL REQUIRED)
 
 # Include directories
 include_directories(${CURL_INCLUDE_DIRS})
+if(INDI_FOUND)
+    include_directories(${INDI_INCLUDE_DIRS})
+endif()
 
 # Test executables
 add_executable(alpaca_version_test alpaca_version_test.cpp)
@@ -28,10 +37,12 @@ add_executable(park_unpark_test park_unpark_test.cpp)
 add_executable(telescope_get_all_test telescope_get_all_test.cpp)
 add_executable(telescope_complete_test telescope_complete_test.cpp)
 add_executable(common_methods_test common_methods_test.cpp)
+add_executable(seestar_methods_test seestar_methods_test.cpp)
 add_executable(camera_methods_test camera_methods_test.cpp)
 add_executable(filterwheel_methods_test filterwheel_methods_test.cpp)
 add_executable(focuser_methods_test focuser_methods_test.cpp)
 add_executable(site_location_test site_location_test.cpp)
+add_executable(camera_image_download_test camera_image_download_test.cpp)
 
 # Link libraries
 target_link_libraries(alpaca_version_test ${CURL_LIBRARIES})
@@ -46,10 +57,12 @@ target_link_libraries(park_unpark_test ${CURL_LIBRARIES})
 target_link_libraries(telescope_get_all_test ${CURL_LIBRARIES})
 target_link_libraries(telescope_complete_test ${CURL_LIBRARIES})
 target_link_libraries(common_methods_test ${CURL_LIBRARIES})
+target_link_libraries(seestar_methods_test ${CURL_LIBRARIES})
 target_link_libraries(camera_methods_test ${CURL_LIBRARIES})
 target_link_libraries(filterwheel_methods_test ${CURL_LIBRARIES})
 target_link_libraries(focuser_methods_test ${CURL_LIBRARIES})
 target_link_libraries(site_location_test ${CURL_LIBRARIES})
+target_link_libraries(camera_image_download_test OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
 target_link_libraries(telescope_complete_test ${CURL_LIBRARIES})
 target_link_libraries(telescope_get_all_test ${CURL_LIBRARIES})
 target_link_libraries(park_native_test ${CURL_LIBRARIES})

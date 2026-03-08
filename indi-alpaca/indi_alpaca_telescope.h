@@ -76,6 +76,13 @@ protected:
     // Site location
     virtual bool updateLocation(double latitude, double longitude, double elevation) override;
 
+protected:
+    // Alpaca helper methods for derived classes
+    std::string getAlpacaURL(const std::string& endpoint);
+    int getTransactionId() { return ++m_TransactionID; }
+    bool sendAlpacaGET(const std::string& endpoint, nlohmann::json& response);
+    bool sendAlpacaPUT(const std::string& endpoint, const nlohmann::json& request, nlohmann::json& response);
+
 private:
     // State tracking
     double m_currentRA { 0 };
@@ -112,11 +119,5 @@ private:
     // Device info properties
     INDI::PropertyText DeviceInfoTP {4};
     enum { DESCRIPTION, DRIVER_INFO, DRIVER_VERSION, INTERFACE_VERSION };
-    
-    // Alpaca helper methods
-    std::string getAlpacaURL(const std::string& endpoint);
-    int getTransactionId() { return ++m_TransactionID; }
-    bool sendAlpacaGET(const std::string& endpoint, nlohmann::json& response);
-    bool sendAlpacaPUT(const std::string& endpoint, const nlohmann::json& request, nlohmann::json& response);
     
 };
